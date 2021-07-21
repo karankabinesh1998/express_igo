@@ -2,7 +2,7 @@ const { startConnection } = require('./dataBaseConnection');
 
 let connection = startConnection();
 
-
+// console.log(startConnection);
 
 class Model {
 

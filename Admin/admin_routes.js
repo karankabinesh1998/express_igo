@@ -13,7 +13,8 @@ var whitelist = [
 "192.168.0.124:3000",
 "igotaxy.com",
 "192.168.0.124:3006",
-"10.0.2.2:8081"
+"10.0.2.2:8081",
+"igotaxy.in"
    ];
 
 const corsOptionsDelegate = (req, res, next) => {

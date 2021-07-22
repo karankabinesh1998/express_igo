@@ -5,13 +5,19 @@ const helmet = require('helmet')
 const responseTime = require('response-time');
 const fileUpload = require('express-fileupload');
 const path = require('path');
-
+const sockets = require('./socket');
+const chalk = require('chalk')
 
 var app = express();
 
 
+const http = require('http');
+const server = http.Server(app);
+sockets.init(server);
+
+
 // console.log(app);
-var Envreader = require('./Envreader')
+var { HOST , PORT } = require('./Envreader')
 
 // console.log(Envreader);
 
@@ -37,5 +43,5 @@ app.use('/admin',AdminRoutes);
 
 // app.use('/user', Routers);
 
-
-app.listen(Envreader.PORT,()=>{console.log(`Server started at port : ${Envreader.HOST}:${Envreader.PORT}`);});
+server.listen(PORT, HOST, () => console.log(chalk.blue(`Server started @ http://${HOST}:${PORT}/`)));
+// app.listen(Envreader.PORT,()=>{console.log(`Server started at port : ${Envreader.HOST}:${Envreader.PORT}`);});

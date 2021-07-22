@@ -8,6 +8,8 @@ const path = require('path');
 const sockets = require('./socket');
 const chalk = require('chalk')
 
+var routes = require('./Routes')
+
 var app = express();
 
 
@@ -39,7 +41,9 @@ app.use(cors());
 app.use(responseTime());
 app.use(fileUpload());
 
-app.use('/admin',AdminRoutes);
+app.use(routes);
+// app.use(notFound);
+// app.use(errorHandler);
 
 // app.use('/user', Routers);
 

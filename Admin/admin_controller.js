@@ -114,6 +114,24 @@ const DownloadImage = async(req,res,next)=>{
 }
 
 
+const Check_Db = async(req,res,next)=>{
+  try {
+
+    const checkemail = await Model.getAllData(
+      `*`,
+      `tbl_user_web`,
+      1,
+      1,
+      1
+    )
+    
+  } catch (error) {
+    console.error(chalk.red(error));
+    res.status(500);
+    next(error);
+  }
+}
+
 
 const AddUser = async(req,res,next) =>{
     const tableName = `tbl_user_web`;
@@ -259,5 +277,6 @@ module.exports={
     AddUser,
     getFreedom,
     updateMaster,
-    deleteMaster
+    deleteMaster,
+    Check_Db
 }

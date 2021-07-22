@@ -56,6 +56,9 @@ const corsOptionsDelegate = (req, res, next) => {
  .route('/filename/:filename?')
  .get(Controller.DownloadImage)
 
+ router
+ .route('/check')
+ .get(Controller.Check_Db)
 
  router
  .route('/adduser')

@@ -1,3 +1,4 @@
+'user strict';
 const mysql = require('mysql');
 
 const { DB_HOST, DB_NAME, DB_USERNAME, DB_PASSWORD, DB_TIMEZONE } = require('./Envreader');
@@ -12,12 +13,12 @@ let db_config = {
     timeout: 1000
   };
 
-  let connection = mysql.createConnection(db_config); 
+   
 
   
 
   module.exports.startConnection = function () {
-   
+    let connection = mysql.createConnection(db_config);
     
     connection.query(function (err) {
       if (err) {
@@ -40,7 +41,7 @@ let db_config = {
 
 
   module.exports.endConnection = function () {
-    
+    let connection = mysql.createPool(db_config);
     connection.end(function (err) {
       if (err) {
         console.log('CloseError');

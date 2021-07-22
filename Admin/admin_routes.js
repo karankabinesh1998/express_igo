@@ -1,5 +1,6 @@
 
 var express = require('express');
+const Model = require('../Model');
 
 const router = require("express").Router();
 
@@ -54,9 +55,22 @@ const corsOptionsDelegate = (req, res, next) => {
  .route('/filename/:filename?')
  .get(Controller.DownloadImage)
 
+
+ router
+ .route('/adduser')
+.post(Controller.AddUser)
 //  router.post('/login',Controller.LoginAdmin);
 
+router
+  .route("/getFullFreedom/getFreedom")
+  .put(corsOptionsDelegate,Controller.getFreedom)
 
+  router
+  .route("/master/:tableName/:id?/:order?")
+  // .post(corsOptionsDelegate, cmsContent.addMaster)
+ //.get(corsOptionsDelegate, cmsContent.getMasterValues)
+  .put(corsOptionsDelegate, Controller.updateMaster)
+  .delete(corsOptionsDelegate, Controller.deleteMaster);
 
  module.exports = router;
 

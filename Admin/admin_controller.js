@@ -124,6 +124,8 @@ const Check_Db = async(req,res,next)=>{
       1,
       1
     )
+
+    res.send(checkemail)
     
   } catch (error) {
     console.error(chalk.red(error));

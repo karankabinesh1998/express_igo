@@ -8,7 +8,7 @@ const path = require('path');
 const sockets = require('./socket');
 const chalk = require('chalk')
 
-var routes = require('./Routes')
+var routes = require('./routes')
 
 var app = express();
 

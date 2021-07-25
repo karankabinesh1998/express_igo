@@ -8,6 +8,7 @@ const path = require('path');
 const sockets = require('./socket');
 const chalk = require('chalk')
 
+const authenticate = require('./middleware/authenticate');
 var routes = require('./routes')
 
 var app = express();
@@ -39,6 +40,7 @@ app.use(cors());
 // console.log(app.use(cors()));
 app.use(responseTime());
 app.use(fileUpload());
+app.use(authenticate);
 
 app.use(routes);
 // app.use(notFound);

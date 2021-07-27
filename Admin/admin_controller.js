@@ -778,6 +778,29 @@ try{
   
   }
 
+
+  const UserProfile = async(req,res,next)=>{
+  
+    let body = req.params.filename; 
+    // let name = req.params.name;
+  
+    try{
+  
+  
+      let  uploadPath = __dirname + '/Images/UserProfile/' +`${body}`;
+      
+      console.log(uploadPath)
+  
+      res.sendFile(uploadPath)
+  
+  }catch(error){
+    console.error(chalk.red(error));
+    res.status(500);
+    next(error);
+  }
+  
+  }
+
 module.exports={
     LoginAdmin,
     DownloadImage,
@@ -795,5 +818,6 @@ module.exports={
     AddTrips,
     TripsData,
     AppLogin,
-    RefreshApp
+    RefreshApp,
+    UserProfile
   }

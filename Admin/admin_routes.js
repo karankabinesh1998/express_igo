@@ -116,6 +116,12 @@ router
   .route('/gettrips')
   .get(Controller.TripsData)
 
+
+  router
+  .route('/profile/:filename')
+  .get(Controller.UserProfile)
+
+
  module.exports = router;
 
  

@@ -7,11 +7,13 @@ const fileUpload = require('express-fileupload');
 const path = require('path');
 const sockets = require('./socket');
 const chalk = require('chalk')
-
+const morgan = require('morgan');
 var routes = require('./routes')
 
 var app = express();
+const winston = require('./winston');
 
+const { errorHandler, notFound } = require('./Middleware');
 
 
 
@@ -21,7 +23,7 @@ var { HOST , PORT } = require('./Envreader')
 
 // console.log(Envreader);
 
-var AdminRoutes = require('./Admin/admin_routes');
+// var AdminRoutes = require('./Admin/admin_routes');
 
 app.use(helmet());
 app.use(helmet.frameguard({ action: 'deny' }));
@@ -40,9 +42,12 @@ app.use(cors());
 app.use(responseTime());
 app.use(fileUpload());
 
+
+app.use(morgan('combined', { stream: winston.stream }));
+
 app.use(routes);
-// app.use(notFound);
-// app.use(errorHandler);
+app.use(notFound);
+app.use(errorHandler);
 
 // app.use('/user', Routers);
 

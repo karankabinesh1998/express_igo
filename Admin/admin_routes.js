@@ -13,7 +13,7 @@ var whitelist = [
   "localhost:4000",
   "192.168.0.124:3000",
   "igotaxy.com",
-  "192.168.0.124:3006",
+  "192.168.1.105:3008",
   "10.0.2.2:8081",
   "igotaxy.in"
    ];
@@ -77,6 +77,44 @@ router
  //.get(corsOptionsDelegate, cmsContent.getMasterValues)
   .put(corsOptionsDelegate, Controller.updateMaster)
   .delete(corsOptionsDelegate, Controller.deleteMaster);
+
+
+  router
+ .route('/vendarfile/:filename/:name')
+ .get(Controller.DownloadFile) 
+
+ router 
+   .route('/AddUniqueValue/:tableName?')
+   .post(corsOptionsDelegate,Controller.AddUniqueValue)
+
+   router 
+   .route('/AddUniqueValueCity/:tableName?')
+   .post(corsOptionsDelegate,Controller.AddUniqueValueCity)
+
+   router
+     .route('/UpdateUniqueCity/:id')
+     .put(corsOptionsDelegate,Controller.UpdateUniqueCity)   
+
+ router
+     .route('/UpdateVendarDocument/:tableName/:id')
+     .post(corsOptionsDelegate,Controller.UpdateVendarDocument)
+
+  router
+  .route('/VendarDocument')
+  .post(corsOptionsDelegate,Controller.AddVendarDocument)
+
+  router
+  .route('/trips/:newcustomer/:id?')
+  .post(corsOptionsDelegate,Controller.AddTrips)
+
+  router
+  .route('/AppLogin/:id?')
+  .post(Controller.AppLogin)
+  .get(Controller.RefreshApp)
+
+  router
+  .route('/gettrips')
+  .get(Controller.TripsData)
 
  module.exports = router;
 

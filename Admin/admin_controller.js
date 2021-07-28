@@ -801,6 +801,46 @@ try{
   
   }
 
+
+  const APPregister = async(req,res,next)=>{
+    try{
+  
+    console.log(req.body);
+  
+    
+  
+    let Userlogincheck =  await Model.getAllData(
+     `tbl_user_web`,
+      req.body
+    )
+    if(Userlogincheck){
+
+      let Result = await Model.getAllData(
+        `*`,
+        `tbl_user_web`,
+        `id = ${Userlogincheck.insertId}`,
+        1,
+        1
+
+      )
+      if(Result){
+        console.log(Result);
+        res.send(Result)
+      }
+  
+     
+    }
+  
+    } catch (error) {
+      //db end connection
+      endConnection();
+      console.error(chalk.red(error));
+      res.status(500);
+      next(error);
+    }
+    
+    }
+
 module.exports={
     LoginAdmin,
     DownloadImage,
@@ -819,5 +859,6 @@ module.exports={
     TripsData,
     AppLogin,
     RefreshApp,
+    APPregister,
     UserProfile
   }

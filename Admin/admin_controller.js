@@ -809,11 +809,13 @@ try{
   
     
   
-    let Userlogincheck =  await Model.getAllData(
+    let Userlogincheck =  await Model.addMaster(
      `tbl_user_web`,
       req.body
     )
     if(Userlogincheck){
+
+      console.log(Userlogincheck);
 
       let Result = await Model.getAllData(
         `*`,

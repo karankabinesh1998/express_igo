@@ -483,12 +483,54 @@ const AddUser = async(req,res,next) =>{
     }
   };
 
+  const updateMasterApp = async (req, res, next) => {
+    const tableName = req.params.tableName;
+    const body = req.body;
+    // const id = req.body.id;
+    let id = req.params.id;
+  console.log(body);
+    try {
+      const result = await Model.updateMaster(
+        tableName,
+        id,
+        body
+      );
+      if (result) {
+        console.log(result,"500");
+
+        let res1 = await Model.getAllData(
+          `*`,
+          `${tableName}`,
+          `id = ${id}`,
+          1,
+          1
+        )
+        if(res1){
+          console.log(res1);
+          res.status(200);
+          res.send(res1);
+        }
+
+        
+      }
+      // db end connection
+      // endConnection();
+      //res.send(result);
+    } catch (error) {
+      //db end connection
+      // endConnection();
+      console.error(chalk.red(error));
+      res.status(500);
+      next(error);
+    }
+  };
+
   const updateMaster = async (req, res, next) => {
     const tableName = req.params.tableName;
     const body = req.body.categoryArray;
     const id = req.body.id;
     let columname = req.params.id;
-  
+  console.log(body);
     try {
       const result = await Model.updateMaster(
         tableName,
@@ -497,8 +539,22 @@ const AddUser = async(req,res,next) =>{
         columname
       );
       if (result) {
-         res.status(200);
-          res.send(result);
+        console.log(result,"500");
+
+        let res1 = await Model.getAllData(
+          `*`,
+          `${tableName}`,
+          `id = ${id}`,
+          1,
+          1
+        )
+        if(res1){
+          console.log(res1);
+          res.status(200);
+          res.send(res1);
+        }
+
+        
       }
       // db end connection
       // endConnection();
@@ -862,5 +918,6 @@ module.exports={
     AppLogin,
     RefreshApp,
     APPregister,
-    UserProfile
+    UserProfile,
+    updateMasterApp
   }

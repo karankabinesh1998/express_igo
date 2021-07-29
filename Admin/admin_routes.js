@@ -75,9 +75,14 @@ router
   .route("/master/:tableName/:id?/:order?")
   // .post(corsOptionsDelegate, cmsContent.addMaster)
  //.get(corsOptionsDelegate, cmsContent.getMasterValues)
-  .put(corsOptionsDelegate, Controller.updateMaster)
+  .put(Controller.updateMaster)
   .delete(corsOptionsDelegate, Controller.deleteMaster);
 
+  router
+  .route("/appmaster/:tableName/:id?/:order?")
+  // .post(corsOptionsDelegate, cmsContent.addMaster)
+ //.get(corsOptionsDelegate, cmsContent.getMasterValues)
+  .put(Controller.updateMasterApp)
 
   router
  .route('/vendarfile/:filename/:name')

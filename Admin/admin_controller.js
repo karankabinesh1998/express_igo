@@ -858,6 +858,33 @@ try{
   }
 
 
+const TripsJson = async(req,res,next)=>{
+  try{
+
+    let id = req.params.id;
+
+    console.log(id);
+
+    let result = await Model.getAllData(
+      `tbl_trips.*,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
+      `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city`,
+      `tbl_user_web.id = tbl_trips.customer_id and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id`,
+      1,
+      1
+    )
+    if(result){
+      res.status(200)
+      res.send(result)
+    }
+
+  }catch(error){
+    console.error(chalk.red(error));
+    res.status(500);
+    next(error);
+  }
+  
+  }
+
   const APPregister = async(req,res,next)=>{
     try{
   
@@ -919,5 +946,6 @@ module.exports={
     RefreshApp,
     APPregister,
     UserProfile,
-    updateMasterApp
+    updateMasterApp,
+    TripsJson
   }

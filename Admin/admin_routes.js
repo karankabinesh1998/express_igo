@@ -121,6 +121,9 @@ router
   .route('/gettrips')
   .get(Controller.TripsData)
 
+  router
+  .route('/TripsJson')
+  .get(Controller.TripsJson)
 
   router
   .route('/profile/:filename')

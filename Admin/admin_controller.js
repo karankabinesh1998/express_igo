@@ -445,6 +445,7 @@ const AddUser = async(req,res,next) =>{
 
 
 
+
   const RefreshApp = async (req, res, next) => {
     
     // const body = req.body;
@@ -462,8 +463,43 @@ const AddUser = async(req,res,next) =>{
         1
       )
       if(result){
-        console.log(result);
-        res.send(result)
+        let WalletHistory = await Model.getAllData(
+          `tbl_user_web.username,tbl_wallet_master_history.*`,
+          `tbl_user_web , tbl_user_web as CustomerTable,tbl_wallet_master_history`,
+          `tbl_user_web.id = ${result[0].id} and CustomerTable.id = tbl_wallet_master_history.customerid and tbl_wallet_master_history.user_id = tbl_user_web.id`,
+          `1`,
+          `tbl_wallet_master_history.id DESC`
+        )
+        if(WalletHistory){
+         
+          let arr =[]
+
+          let wait = await   WalletHistory.map((ival,i)=>{
+            
+            arr.push([i+1 , ival.amount , ival.debited_credited ,ival.created_At])
+
+          })
+
+          
+          await Promise.all(wait);
+          
+           result[0].wallethistory = JSON.stringify(arr);
+           console.log(result);
+       
+            res.send(result);
+            res.status(200);
+      }else{
+
+        result[0].wallethistory = null;
+        // console.log(result);
+    
+         res.send(result);
+         res.status(200);
+
+      }
+      }else{
+        res.send(false);
+        res.status(404)
       }
      
 
@@ -483,19 +519,55 @@ const AddUser = async(req,res,next) =>{
     
     const body = req.body;
     
-  console.log(body);
+  // console.log(body);
     try {
 
       let result = await Model.getAllData(
         `*`,
         `tbl_user_web`,
-        `email_id='${body.email_id}' and password ='${body.password}'`,
+        `email_id='${body.email_id}' and password ='${body.password}' and status = 1`,
         1,
         1
       )
       if(result){
         console.log(result);
-        res.send(result)
+        let WalletHistory = await Model.getAllData(
+          `tbl_user_web.username,tbl_wallet_master_history.*`,
+          `tbl_user_web , tbl_user_web as CustomerTable,tbl_wallet_master_history`,
+          `tbl_user_web.id = ${result[0].id} and CustomerTable.id = tbl_wallet_master_history.customerid and tbl_wallet_master_history.user_id = tbl_user_web.id`,
+          `1`,
+          `tbl_wallet_master_history.id DESC`
+        )
+        if(WalletHistory){
+         
+          let arr =[]
+
+          let wait = await   WalletHistory.map((ival,i)=>{
+            
+            arr.push([i+1 , ival.amount , ival.debited_credited ,ival.created_At])
+
+          })
+
+          
+          await Promise.all(wait);
+          
+           result[0].wallethistory = JSON.stringify(arr);
+           console.log(result);
+       
+            res.send(result);
+            res.status(200);
+      }else{
+
+        result[0].wallethistory = null;
+        // console.log(result);
+    
+         res.send(result);
+         res.status(200);
+
+      }
+      }else{
+        res.status = 404;
+        res.send(false);
       }
      
 

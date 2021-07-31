@@ -203,6 +203,91 @@ const Check_Db = async(req,res,next)=>{
 }
 
 
+const addMaster = async (req, res, next) => {
+  const tableName = req.params.tableName;
+  const body = req.body; 
+ console.log(body)
+  try {
+
+    const GetUserDeatils = await Model.getAllData(
+      `*`,
+      `tbl_user_web`,
+      `id=${body.user_id}`,
+      1,
+      1
+    )
+    if(GetUserDeatils){
+
+    let debited_credited = body.debited_credited;
+    console.log(debited_credited,"debited_credited");
+    let wallet = GetUserDeatils[0].wallet==null ? 0 : GetUserDeatils[0].wallet ;
+
+    console.log(wallet,"wallet");
+
+    if(debited_credited=="credited"){
+        
+      wallet = parseInt(wallet) + parseInt(body.amount)
+
+    }else{
+
+      wallet = parseInt(wallet) - parseInt(body.amount)
+
+    }
+
+    console.log(wallet,"wallet2");
+
+    const result = await Model.updateMaster(
+      `tbl_user_web`,
+      req.body.user_id,
+      {wallet : wallet },
+      columname ="id"
+    );
+    if(result){
+
+    const result1 = await Model.addMaster(tableName, body);
+    console.log(result);
+    console.log(result1);
+        if(result1){
+
+
+          const GetUserDeatils1 = await Model.getAllData(
+            `*`,
+            `tbl_user_web`,
+            `id=${body.user_id}`,
+            1,
+            1
+          );
+
+if(GetUserDeatils1){
+          res.send(GetUserDeatils1);
+          res.status(200);
+
+}
+        }
+
+    }
+
+
+  }
+
+    
+  
+    
+    
+   //db end connection
+    endConnection();
+    
+  } catch (error) {
+    //db end connection
+    endConnection();
+    console.error(chalk.red(error));
+    res.status(500);
+    next(error);
+  }
+};
+
+
+
 const AddUser = async(req,res,next) =>{
     const tableName = `tbl_user_web`;
     const body = req.body;
@@ -1200,5 +1285,6 @@ module.exports={
     updateMasterApp,
     TripsJson,
     UpdateUser,
-    UploadUserProfile
+    UploadUserProfile,
+    addMaster
   }

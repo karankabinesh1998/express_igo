@@ -79,7 +79,7 @@ router
 
   router
   .route("/master/:tableName/:id?/:order?")
-  // .post(corsOptionsDelegate, cmsContent.addMaster)
+  .post(corsOptionsDelegate, Controller.addMaster)
  //.get(corsOptionsDelegate, cmsContent.getMasterValues)
   .put(Controller.updateMaster)
   .delete(corsOptionsDelegate, Controller.deleteMaster);

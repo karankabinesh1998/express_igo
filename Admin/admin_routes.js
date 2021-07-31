@@ -63,8 +63,9 @@ const corsOptionsDelegate = (req, res, next) => {
  .get(Controller.Check_Db)
 
  router
- .route('/adduser')
+ .route('/adduser/:tableName?/:id?/:editid?')
 .post(Controller.AddUser)
+.put(Controller.UpdateUser)
 //  router.post('/login',Controller.LoginAdmin);
 
 router

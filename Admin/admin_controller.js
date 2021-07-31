@@ -50,9 +50,9 @@ return sendfile
 
 const UploadImage = async (a) =>{
     try {
-      console.log(a,"fkhdsjkh")
+      console.log(a,"fkhdsjkh");
       let image = a.profile_dp;
-      console.log(image,"data")
+      console.log(image,"data");
       let imagename  = image.name.split(".");
       let sampleFile;
       let uploadPath = "";
@@ -185,7 +185,7 @@ const AddUser = async(req,res,next) =>{
   
       const data = await UploadImage(req.files)
   
-     // console.log(data,"succeess")
+     console.log(data,"succeess")
   
       if(data !== undefined){
         body.profile_dp = data;
@@ -568,6 +568,70 @@ const AddUser = async(req,res,next) =>{
     }
   };
 
+
+
+  const UpdateUser = async(req,res,next) =>{
+    // const tableName = `tbl_user_web`;
+    // const body = req.body;
+
+    const tableName = req.params.tableName;
+    const body = req.body;
+    const id = req.params.editid;
+    let columname = req.params.id;
+      console.log(req.body,"581");
+
+     console.log(req.files,"582");
+    try{
+  
+      const data = await UploadImage(req.files)
+  
+     console.log(data,"succeess")
+  
+      if(data !== undefined){
+        body.profile_dp = data;
+      }else{
+        body.profile_dp = null;
+      }
+  
+      console.log(body)
+  
+      const result = await Model.updateMaster(
+        tableName,
+        id,
+        body,
+        columname
+      );
+      if (result) {
+        console.log(result,"500");
+
+        let res1 = await Model.getAllData(
+          `*`,
+          `${tableName}`,
+          `id = ${id}`,
+          1,
+          1
+        )
+        if(res1){
+          console.log(res1);
+          res.status(200);
+          res.send(res1);
+        }
+  
+       
+   }
+     //res.send("success")
+    //  endConnection();
+  
+    }catch(error){
+      endConnection();
+      console.log(chalk.red(error));
+      next(error);
+      res.status(500)
+    }
+  }
+
+
+
   const UpdateVendarDocument = async(req,res,next)=>{
 
     const tableName = req.params.tableName;
@@ -861,9 +925,7 @@ try{
 const TripsJson = async(req,res,next)=>{
   try{
 
-    let id = req.params.id;
-
-    console.log(id);
+    
 
     let result = await Model.getAllData(
       `tbl_trips.*,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
@@ -947,5 +1009,6 @@ module.exports={
     APPregister,
     UserProfile,
     updateMasterApp,
-    TripsJson
+    TripsJson,
+    UpdateUser
   }

@@ -7,10 +7,10 @@ const fs = require("fs");
  const moment = require('moment')
 
 
- const UploadDocument = async (a,b) =>{
+ const UploadDocument = async (a,b,editImage=false,OldFile = null) =>{
 
   try {
-    console.log(a,"fkhdsjkh")
+    console.log(OldFile,editImage,"OldFile")
     let image = a.file;
     console.log(image.name,"data")
     let imagename  = image.name.split(".");
@@ -40,6 +40,17 @@ const fs = require("fs");
     //res.send('File uploaded!');
    // return uploadPath
   });
+
+  if(editImage==true){
+
+    let removeFilePAth = __dirname + '/Images/' + `/${b}/`+OldFile;
+    console.log(removeFilePAth,"removeFilePAth");
+    fs.unlink(removeFilePAth,function(err){
+      if(err) return console.log(err);
+      console.log('file deleted successfully');
+       }); 
+
+  }
 
 return sendfile
    
@@ -732,8 +743,21 @@ const AddUser = async(req,res,next) =>{
     const Files = req.files;
     try{
      
+
   
     // console.log(Files[body.driving_licence_front] )
+
+    let UploadImageChck = await Model.getAllData(
+      `*`,
+      `${tableName}`,
+      `id = ${id}`,
+      1,
+      1
+    )
+    if(UploadImageChck){
+
+      console.log(UploadImageChck,"UploadImageChck");
+    
   
      if( Files[body.driving_licence_front] == undefined  ){
   
@@ -743,7 +767,7 @@ const AddUser = async(req,res,next) =>{
   
       Files[body.driving_licence_front] = {file : Files[body.driving_licence_front]}
   
-      body.driving_licence_front = await UploadDocument(Files[body.driving_licence_front],body.username);
+      body.driving_licence_front = await UploadDocument(Files[body.driving_licence_front]);
   
       if(body.driving_licence_front == undefined){
         body.driving_licence_front = null
@@ -810,6 +834,7 @@ const AddUser = async(req,res,next) =>{
        res.status(200);
         res.send(result);
     }
+  }
       endConnection();
    //  res.send("Success")
   

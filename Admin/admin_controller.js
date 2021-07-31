@@ -48,9 +48,10 @@ return sendfile
 }
 }
 
-const UploadImage = async (a) =>{
+const UploadImage = async (a,editImage=false,OldFile = null) =>{
     try {
-      console.log(a,"fkhdsjkh");
+      // console.log(a,"fkhdsjkh");
+      console.log(editImage,OldFile,"CheckOldFile");
       let image = a.profile_dp;
       console.log(image,"data");
       let imagename  = image.name.split(".");
@@ -66,6 +67,9 @@ const UploadImage = async (a) =>{
       Pathcheck = __dirname + '/Images/UserProfile/'
       uploadPath = __dirname + '/Images/UserProfile/'+imagename[0]+`_${Date.now()}`+'.'+imagename[1];
 
+      
+     
+
       sendfile = imagename[0]+`_${Date.now()}`+'.'+imagename[1] ;
 
       fs.mkdir(Pathcheck, { recursive: true }, (err) => {
@@ -80,6 +84,17 @@ const UploadImage = async (a) =>{
       //res.send('File uploaded!');
       // return uploadPath
       });
+
+      if(editImage==true){
+
+        let removeFilePAth = __dirname + '/Images/UserProfile/'+OldFile;
+        console.log(removeFilePAth,"removeFilePAth");
+        fs.unlink(removeFilePAth,function(err){
+          if(err) return console.log(err);
+          console.log('file deleted successfully');
+           }); 
+
+      }
   
   return sendfile
      
@@ -506,7 +521,7 @@ const AddUser = async(req,res,next) =>{
           1
         )
         if(res1){
-          console.log(res1);
+          console.log(res1,"updateMasterApp");
           res.status(200);
           res.send(res1);
         }
@@ -530,7 +545,7 @@ const AddUser = async(req,res,next) =>{
     const body = req.body.categoryArray;
     const id = req.body.id;
     let columname = req.params.id;
-  console.log(body);
+      console.log(body);
     try {
       const result = await Model.updateMaster(
         tableName,
@@ -582,8 +597,17 @@ const AddUser = async(req,res,next) =>{
 
      console.log(req.files,"582");
     try{
+
+      let UpdateOldImage = await Model.getAllData(
+        `*`,
+        `${tableName}`,
+        `id = ${id}`,
+        1,
+        1
+      )
+      if(UpdateOldImage){
   
-      const data = await UploadImage(req.files)
+      const data = await UploadImage(req.files,true,UpdateOldImage[0].profile_dp)
   
      console.log(data,"succeess")
   
@@ -619,6 +643,7 @@ const AddUser = async(req,res,next) =>{
   
        
    }
+  }
      //res.send("success")
     //  endConnection();
   
@@ -630,6 +655,73 @@ const AddUser = async(req,res,next) =>{
     }
   }
 
+
+
+  const UploadUserProfile =async(req,res,next)=>{
+      const id = req.params.id;
+      let tableName = 'tbl_user_web';
+      let columname = "id";
+      let body = req.body;
+      try {
+          console.log(body);
+          console.log(id);
+
+
+
+        let UpdateOldImage = await Model.getAllData(
+        `*`,
+        `${tableName}`,
+        `id = ${id}`,
+        1,
+        1
+      )
+      if(UpdateOldImage){
+  
+      const data = await UploadImage(req.files,true,UpdateOldImage[0].profile_dp)
+  
+        console.log(data,"succeess")
+     
+         if(data !== undefined){
+           body.profile_dp = data;
+         }else{
+           body.profile_dp = null;
+         }
+
+         const result = await Model.updateMaster(
+          tableName,
+          id,
+          body,
+          columname
+        );
+        if (result) {
+          console.log(result,"500");
+  
+          let res1 = await Model.getAllData(
+            `*`,
+            `${tableName}`,
+            `id = ${id}`,
+            1,
+            1
+          )
+          if(res1){
+            console.log(res1,"670");
+            res.status(200);
+            res.send(res1);
+          }
+
+        }
+      }
+
+        
+      } catch (error) {
+        endConnection();
+        console.log(chalk.red(error));
+        next(error);
+        res.status(500)
+      }
+
+
+  }
 
 
   const UpdateVendarDocument = async(req,res,next)=>{
@@ -1010,5 +1102,6 @@ module.exports={
     UserProfile,
     updateMasterApp,
     TripsJson,
-    UpdateUser
+    UpdateUser,
+    UploadUserProfile
   }

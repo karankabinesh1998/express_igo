@@ -68,6 +68,11 @@ const corsOptionsDelegate = (req, res, next) => {
 .put(Controller.UpdateUser)
 //  router.post('/login',Controller.LoginAdmin);
 
+
+router 
+.route('/UploadUserProfile/:id?')
+.post(Controller.UploadUserProfile)
+
 router
   .route("/getFullFreedom/getFreedom")
   .put(corsOptionsDelegate,Controller.getFreedom)

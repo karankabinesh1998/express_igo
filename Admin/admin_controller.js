@@ -491,6 +491,14 @@ const AddUser = async(req,res,next) =>{
   };
 
 
+  const randomString=async(length, chars)=>{
+    var result = '';
+    for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
+    return result;
+}
+
+
+
   const AddTrips = async (req, res, next) => {
     const newcustomer = req.params.newcustomer;
     let body = req.body;
@@ -531,6 +539,8 @@ const AddUser = async(req,res,next) =>{
 
           body.customer_id = AddNewCustomer.insertId;
 
+          body.trip_id = await randomString(10, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+
           console.log(body,"527");
 
           const result1 = await Model.addMaster(`tbl_trips`, body );
@@ -544,8 +554,11 @@ const AddUser = async(req,res,next) =>{
             if(getData1){
 
               console.log(getData1,"539");
-              res.send(getData1)
-              res.status(200);
+
+
+
+              // res.send(getData1)
+              // res.status(200);
             }
           }
 

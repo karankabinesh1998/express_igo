@@ -493,7 +493,7 @@ const AddUser = async(req,res,next) =>{
 
   const AddTrips = async (req, res, next) => {
     const newcustomer = req.params.newcustomer;
-    const body = req.body;
+    let body = req.body;
   console.log(body);
   
     try {
@@ -509,8 +509,51 @@ const AddUser = async(req,res,next) =>{
 
           if(getData){
             res.send(getData)
+            res.status(200);
           }
         }
+      }else if(newcustomer==1){
+
+   let customer1 = JSON.parse(body.customer);
+
+   let customer = customer1[0]
+
+        console.log(customer);
+
+        customer.status = 1;
+        customer.userType = 4;
+
+        let AddNewCustomer = await Model.addMaster(`tbl_user_web`,customer);
+
+        if(AddNewCustomer){
+
+          delete body.customer;
+
+          body.customer_id = AddNewCustomer.insertId;
+
+          console.log(body,"527");
+
+          const result1 = await Model.addMaster(`tbl_trips`, body );
+
+          if(result1){
+
+            console.log(result1,"533");
+
+            let getData1 = await Model.getAllData(`*`,`tbl_trips`,`id=${result1.insertId}`,1,1)
+
+            if(getData1){
+
+              console.log(getData1,"539");
+              res.send(getData1)
+              res.status(200);
+            }
+          }
+
+
+
+        }
+
+
       }
 
 
@@ -549,9 +592,9 @@ const AddUser = async(req,res,next) =>{
       )
       if(result){
         let WalletHistory = await Model.getAllData(
-          `tbl_user_web.username,tbl_wallet_master_history.*`,
-          `tbl_user_web , tbl_user_web as CustomerTable,tbl_wallet_master_history`,
-          `tbl_user_web.id = ${result[0].id} and CustomerTable.id = tbl_wallet_master_history.customerid and tbl_wallet_master_history.user_id = tbl_user_web.id`,
+          `tbl_wallet_master_history.*`,
+          `tbl_user_web,tbl_wallet_master_history`,
+          `tbl_user_web.id = ${result[0].id} and tbl_wallet_master_history.user_id = tbl_user_web.id`,
           `1`,
           `tbl_wallet_master_history.id DESC`
         )
@@ -569,6 +612,7 @@ const AddUser = async(req,res,next) =>{
           await Promise.all(wait);
           
            result[0].wallethistory = JSON.stringify(arr);
+
            console.log(result);
        
             res.send(result);
@@ -610,24 +654,26 @@ const AddUser = async(req,res,next) =>{
       let result = await Model.getAllData(
         `*`,
         `tbl_user_web`,
-        `email_id='${body.email_id}' and password ='${body.password}' and status = 1`,
+        `email_id='${body.email_id}' and password ='${body.password}' and status = 1 and userType = 3`,
         1,
         1
       )
       if(result){
-        console.log(result);
+        // console.log(result);
         let WalletHistory = await Model.getAllData(
-          `tbl_user_web.username,tbl_wallet_master_history.*`,
-          `tbl_user_web , tbl_user_web as CustomerTable,tbl_wallet_master_history`,
-          `tbl_user_web.id = ${result[0].id} and CustomerTable.id = tbl_wallet_master_history.customerid and tbl_wallet_master_history.user_id = tbl_user_web.id`,
-          `1`,
-          `tbl_wallet_master_history.id DESC`
+          `tbl_wallet_master_history.*`,
+          `tbl_user_web,tbl_wallet_master_history`,
+          `tbl_wallet_master_history.user_id = tbl_user_web.id and tbl_wallet_master_history.user_id=${result[0].id}`,
+          1,
+          1
         )
         if(WalletHistory){
+
+          // console.log(WalletHistory,"WalletHistoryWalletHistory");
          
           let arr =[]
 
-          let wait = await   WalletHistory.map((ival,i)=>{
+          let wait = await WalletHistory.map((ival,i)=>{
             
             arr.push([i+1 , ival.amount , ival.debited_credited ,ival.created_At])
 
@@ -635,12 +681,15 @@ const AddUser = async(req,res,next) =>{
 
           
           await Promise.all(wait);
+
+          console.log(arr,"arrarrarr");
           
            result[0].wallethistory = JSON.stringify(arr);
-           console.log(result);
-       
-            res.send(result);
+           console.log(result,"resultresultresult");
+      //  log
+            // ;
             res.status(200);
+            res.send(result)
       }else{
 
         result[0].wallethistory = null;

@@ -7,12 +7,64 @@ const fs = require("fs");
  const moment = require('moment')
 
 
+ const UploadDocument1 = async (a,b,editImage=false,OldFile = null) =>{
+
+  try {
+    console.log(OldFile,editImage,"OldFile")
+    let image = a;
+    console.log(a,"data")
+    let imagename  = image.name.split(".");
+  let sampleFile;
+  let uploadPath = "";
+
+  if (!a.files || Object.keys(a.files).length === 0) {
+   // return res.status(400).send('No files were uploaded.');
+  }
+
+  // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
+  sampleFile = a;
+  Pathcheck = __dirname + '/Images/' + `/${b}/`
+  uploadPath = __dirname + '/Images/'+  `/${b}/` +imagename[0]+`_${Date.now()}`+'.'+imagename[1];
+
+  sendfile = imagename[0]+`_${Date.now()}`+'.'+imagename[1] ;
+ 
+  fs.mkdir(Pathcheck, { recursive: true }, (err) => {
+    if (err) throw err;
+  });
+
+  //console.log(uploadPath)
+  // Use the mv() method to place the file somewhere on your server
+  sampleFile.mv(uploadPath, function(err) {
+    if (err)
+      return err;
+    //res.send('File uploaded!');
+   // return uploadPath
+  });
+
+  if(editImage==true){
+
+    let removeFilePAth = __dirname + '/Images/' + `/${b}/`+OldFile;
+    console.log(removeFilePAth,"removeFilePAth");
+    fs.unlink(removeFilePAth,function(err){
+      if(err) return console.log(err);
+      console.log('file deleted successfully');
+       }); 
+
+  }
+
+return sendfile
+   
+} catch (error) {
+   console.log(error);
+}
+}
+
  const UploadDocument = async (a,b,editImage=false,OldFile = null) =>{
 
   try {
     console.log(OldFile,editImage,"OldFile")
     let image = a.file;
-    console.log(image.name,"data")
+    console.log(a,"data")
     let imagename  = image.name.split(".");
   let sampleFile;
   let uploadPath = "";
@@ -339,6 +391,103 @@ const AddUser = async(req,res,next) =>{
     }
   }
 
+  const AppDocumentUpload = async(req,res,next)=>{
+    const body = req.body;
+    try {
+      console.log(req.body,"AppDocumentUpload");
+      console.log(req.files,"Files");
+      console.log(req.files.aadhar_front,"aadhar_front")
+      let CheckDoc = await Model.getAllData(
+        `*`,
+        `tbl_vendar_documents`,
+        `userid=${body.userid}`,
+        1,
+        1
+      );
+
+        if(req.files.aadhar_front !== undefined ){
+        body.aadhar_front = await UploadDocument1(req.files.aadhar_front,body.userid,req.body.aadhar_front=='null' ? false : true , req.body.aadhar_front ? req.body.aadhar_front : null );
+        }else if(req.files.aadhar_back !== undefined){
+          body.aadhar_back = await UploadDocument1(req.files.aadhar_back,body.userid,req.body.aadhar_back=='null' ? false : true , req.body.aadhar_back ? req.body.aadhar_back : null);
+        }else if(req.files.driving_licence_front !== undefined){
+        body.driving_licence_front = await UploadDocument1(req.files.driving_licence_front,body.userid, req.body.driving_licence_front=='null' ? false : true , req.body.driving_licence_front ? req.body.driving_licence_front : null);
+        }else if(req.files.driving_licence_back !== undefined){
+        body.driving_licence_back = await UploadDocument1(req.files.driving_licence_back,body.userid, req.body.driving_licence_back=='null' ? false : true , req.body.driving_licence_back ? req.body.driving_licence_back : null);
+        }else if(req.files.pancard_front !== undefined){
+        body.pancard_front = await UploadDocument1(req.files.pancard_front,body.userid, req.body.pancard_front=='null' ? false : true , req.body.pancard_front ? req.body.pancard_front : null);
+        }else if(req.files.pancard_back !== undefined){
+        body.pancard_back = await UploadDocument1(req.files.pancard_back,body.userid, req.body.pancard_back=='null' ? false : true , req.body.pancard_back ? req.body.pancard_back : null);
+        }
+
+        console.log(body,"421");
+
+      if(CheckDoc.length){
+
+        const result = await Model.updateMaster(
+          `tbl_vendar_documents`,
+          CheckDoc[0].id,
+          body,
+          columname = "id"
+        );
+        if (result) {
+
+          let CheckDoc1 = await Model.getAllData(
+            `*`,
+            `tbl_vendar_documents`,
+            `userid=${body.userid}`,
+            1,
+            1
+          );
+          if(CheckDoc1){
+
+            console.log(CheckDoc1,"updateMaster");
+            res.status(200);
+             res.send(CheckDoc1);
+          }
+
+           
+        }
+       
+
+      }else{
+
+        const result = await Model.addMaster(`tbl_vendar_documents`, body );
+        if(result){
+    
+          // result.body = body;
+
+          let CheckDoc1 = await Model.getAllData(
+            `*`,
+            `tbl_vendar_documents`,
+            `userid=${body.userid}`,
+            1,
+            1
+          );
+          if(CheckDoc1){
+
+            console.log(CheckDoc1,"addMaster");
+            res.status(200);
+             res.send(CheckDoc1);
+          }
+
+          // console.log(result,"updateMaster");
+          // res.send(result);
+          // res.status(200)
+    
+        }
+
+      }
+
+
+
+      
+    } catch (error) {
+      endConnection();
+      console.log(chalk.red(error));
+      next(error);
+      res.status(500)
+    }
+  }
 
   const AddVendarDocument = async(req,res,next)=>{
 
@@ -358,7 +507,7 @@ const AddUser = async(req,res,next) =>{
   
       Files[body.driving_licence_front] = {file : Files[body.driving_licence_front]}
   
-      body.driving_licence_front = await UploadDocument(Files[body.driving_licence_front],body.username);
+      body.driving_licence_front = await UploadDocument(Files[body.driving_licence_front],body.userid);
   
       if(body.driving_licence_front == undefined){
         body.driving_licence_front = null
@@ -373,7 +522,7 @@ const AddUser = async(req,res,next) =>{
      }else{
       Files[body.driving_licence_back] = {file : Files[body.driving_licence_back] }
   
-      body.driving_licence_back = await UploadDocument(Files[body.driving_licence_back],body.username);
+      body.driving_licence_back = await UploadDocument(Files[body.driving_licence_back],body.userid);
   
       if(body.driving_licence_back === undefined){
         body.driving_licence_back = null;
@@ -387,7 +536,7 @@ const AddUser = async(req,res,next) =>{
      }else{
       Files[body.aadhar_front] = {file : Files[body.aadhar_front] }
   
-      body.aadhar_front = await UploadDocument(Files[body.aadhar_front],body.username);
+      body.aadhar_front = await UploadDocument(Files[body.aadhar_front],body.userid);
   
       if(body.aadhar_front === undefined){
         body.aadhar_front = null;
@@ -401,7 +550,7 @@ const AddUser = async(req,res,next) =>{
      }else{
        
       Files[body.aadhar_back] = {file : Files[body.aadhar_back] }
-      body.aadhar_back = await UploadDocument(Files[body.aadhar_back],body.username);
+      body.aadhar_back = await UploadDocument(Files[body.aadhar_back],body.userid);
   
       if(body.aadhar_back == undefined){
         body.aadhar_back = null
@@ -442,7 +591,7 @@ const AddUser = async(req,res,next) =>{
         `tbl_user_web.id = tbl_trips.customer_id and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id`,
         1,
         1
-      )
+      );
 
           if(result){
             endConnection();
@@ -611,6 +760,25 @@ const AddUser = async(req,res,next) =>{
           `1`,
           `tbl_wallet_master_history.id DESC`
         )
+
+        let tbl_vendar_documents = await Model.getAllData(
+          `*`,
+          `tbl_vendar_documents`,
+          `userid=${result[0].id}`,
+          1,
+          1
+        )
+        if(tbl_vendar_documents){
+
+          
+          result[0].Documentation = JSON.stringify(tbl_vendar_documents)
+
+        }else{
+
+          result[0].Documentation = null
+
+        }
+        
         if(WalletHistory){
          
           let arr =[]
@@ -679,7 +847,26 @@ const AddUser = async(req,res,next) =>{
           `tbl_wallet_master_history.user_id = tbl_user_web.id and tbl_wallet_master_history.user_id=${result[0].id}`,
           1,
           1
+        );
+
+        let tbl_vendar_documents = await Model.getAllData(
+          `*`,
+          `tbl_vendar_documents`,
+          `userid=${result[0].id}`,
+          1,
+          1
         )
+        if(tbl_vendar_documents){
+
+          
+          result[0].Documentation = JSON.stringify(tbl_vendar_documents)
+
+        }else{
+
+          result[0].Documentation = null
+
+        }
+
         if(WalletHistory){
 
           // console.log(WalletHistory,"WalletHistoryWalletHistory");
@@ -1348,5 +1535,6 @@ module.exports={
     TripsJson,
     UpdateUser,
     UploadUserProfile,
-    addMaster
+    addMaster,
+    AppDocumentUpload
   }

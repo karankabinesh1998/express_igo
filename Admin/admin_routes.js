@@ -114,6 +114,9 @@ router
   .route('/VendarDocument')
   .post(corsOptionsDelegate,Controller.AddVendarDocument)
 
+  router.route('/AppDocumentUpload')
+  .post(Controller.AppDocumentUpload)
+
   router
   .route('/trips/:newcustomer/:id?')
   .post(corsOptionsDelegate,Controller.AddTrips)

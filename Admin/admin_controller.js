@@ -359,9 +359,9 @@ const AddUser = async(req,res,next) =>{
       console.log(body)
   
       const checkemail = await Model.getAllData(
-        `*`,
+        `email_id,mobile`,
         `${tableName}`,
-        `email_id = '${body.email_id}'`,
+        `email_id = '${body.email_id}' or mobile = '${body.mobile}'`,
         1,
         1
       )

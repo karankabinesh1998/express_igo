@@ -1188,12 +1188,12 @@ const AddUser = async(req,res,next) =>{
     let UploadImageChck = await Model.getAllData(
       `*`,
       `${tableName}`,
-      `id = ${id}`,
+      `userid= ${id}`,
       1,
       1
     )
     if(UploadImageChck){
-
+     
       console.log(UploadImageChck,"UploadImageChck");
     
   
@@ -1205,7 +1205,7 @@ const AddUser = async(req,res,next) =>{
   
       Files[body.driving_licence_front] = {file : Files[body.driving_licence_front]}
   
-      body.driving_licence_front = await UploadDocument(Files[body.driving_licence_front]);
+      body.driving_licence_front = await UploadDocument(Files[body.driving_licence_front],id,UploadImageChck[0].driving_licence_front ? true :  false , UploadImageChck[0].driving_licence_front);
   
       if(body.driving_licence_front == undefined){
         body.driving_licence_front = null
@@ -1220,7 +1220,7 @@ const AddUser = async(req,res,next) =>{
      }else{
       Files[body.driving_licence_back] = {file : Files[body.driving_licence_back] }
   
-      body.driving_licence_back = await UploadDocument(Files[body.driving_licence_back],body.username);
+      body.driving_licence_back = await UploadDocument(Files[body.driving_licence_back],id,UploadImageChck[0].driving_licence_back ? true : false,UploadImageChck[0].driving_licence_back);
   
       if(body.driving_licence_back === undefined){
         body.driving_licence_back = null;
@@ -1234,7 +1234,7 @@ const AddUser = async(req,res,next) =>{
      }else{
       Files[body.aadhar_front] = {file : Files[body.aadhar_front] }
   
-      body.aadhar_front = await UploadDocument(Files[body.aadhar_front],body.username);
+      body.aadhar_front = await UploadDocument(Files[body.aadhar_front],id,UploadImageChck[0].aadhar_front ? true : false,UploadImageChck[0].aadhar_front);
   
       if(body.aadhar_front === undefined){
         body.aadhar_front = null;
@@ -1248,7 +1248,7 @@ const AddUser = async(req,res,next) =>{
      }else{
        
       Files[body.aadhar_back] = {file : Files[body.aadhar_back] }
-      body.aadhar_back = await UploadDocument(Files[body.aadhar_back],body.username);
+      body.aadhar_back = await UploadDocument(Files[body.aadhar_back],id,UploadImageChck[0].aadhar_back ? true : false,UploadImageChck[0].aadhar_back);
   
       if(body.aadhar_back == undefined){
         body.aadhar_back = null
@@ -1263,7 +1263,7 @@ const AddUser = async(req,res,next) =>{
      }else{
        
       Files[body.pancard_front] = {file : Files[body.pancard_front] }
-      body.pancard_front = await UploadDocument(Files[body.pancard_front],body.username);
+      body.pancard_front = await UploadDocument(Files[body.pancard_front],id,UploadImageChck[0].pancard_front ? true : false,UploadImageChck[0].pancard_front);
   
       if(body.pancard_front == undefined){
         body.pancard_front = null
@@ -1278,7 +1278,7 @@ const AddUser = async(req,res,next) =>{
      }else{
        
       Files[body.pancard_back] = {file : Files[body.pancard_back] }
-      body.pancard_back = await UploadDocument(Files[body.pancard_back],body.username);
+      body.pancard_back = await UploadDocument(Files[body.pancard_back],id,UploadImageChck[0].pancard_back ? true : false,UploadImageChck[0].pancard_back);
   
       if(body.pancard_back == undefined){
         body.pancard_back = null
@@ -1295,7 +1295,7 @@ const AddUser = async(req,res,next) =>{
       tableName,
       id,
       body,
-      columname = "id"
+      columname = "userid"
     );
     if (result) {
       console.log(result);

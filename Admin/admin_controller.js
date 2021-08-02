@@ -557,6 +557,38 @@ const AddUser = async(req,res,next) =>{
       }
   
      }
+
+
+     if( Files[body.pancard_front]== null ){
+  
+      body.pancard_front = null;
+  
+     }else{
+       
+      Files[body.pancard_front] = {file : Files[body.pancard_front] }
+      body.pancard_front = await UploadDocument(Files[body.pancard_front],body.userid);
+  
+      if(body.pancard_front == undefined){
+        body.pancard_front = null
+      }
+  
+     }
+
+
+     if( Files[body.pancard_back]== null ){
+  
+      body.pancard_back = null;
+  
+     }else{
+       
+      Files[body.pancard_back] = {file : Files[body.pancard_back] }
+      body.pancard_back = await UploadDocument(Files[body.pancard_back],body.userid);
+  
+      if(body.pancard_back == undefined){
+        body.pancard_back = null
+      }
+  
+     }
   
      console.log(body)
   
@@ -1220,6 +1252,36 @@ const AddUser = async(req,res,next) =>{
   
       if(body.aadhar_back == undefined){
         body.aadhar_back = null
+      }
+  
+     }
+
+     if( Files[body.pancard_front]== undefined ){
+  
+      body.pancard_front = body.pancard_front;
+  
+     }else{
+       
+      Files[body.pancard_front] = {file : Files[body.pancard_front] }
+      body.pancard_front = await UploadDocument(Files[body.pancard_front],body.username);
+  
+      if(body.pancard_front == undefined){
+        body.pancard_front = null
+      }
+  
+     }
+
+     if( Files[body.pancard_back]== undefined ){
+  
+      body.pancard_back = body.pancard_back;
+  
+     }else{
+       
+      Files[body.pancard_back] = {file : Files[body.pancard_back] }
+      body.pancard_back = await UploadDocument(Files[body.pancard_back],body.username);
+  
+      if(body.pancard_back == undefined){
+        body.pancard_back = null
       }
   
      }

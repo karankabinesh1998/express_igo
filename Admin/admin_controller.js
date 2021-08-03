@@ -920,19 +920,7 @@ const AddUser = async(req,res,next) =>{
       if(result){
         // console.log(result);
 
-        let BiddingTrip = await Model.getAllData(
-          `*`,
-          `tbl_bidding_trips`,
-          `vendor_id = ${result[0].id}`,
-          1,
-          `id DESC`
-        )
-
-        if(BiddingTrip){
-          result.BiddingTrip  = JSON.stringify(BiddingTrip)
-        }else{
-          result.BiddingTrip  = JSON.stringify([])
-        }
+        
 
 
         let WalletHistory = await Model.getAllData(
@@ -959,6 +947,20 @@ const AddUser = async(req,res,next) =>{
 
           result[0].Documentation = null
 
+        }
+
+        let BiddingTrip = await Model.getAllData(
+          `*`,
+          `tbl_bidding_trips`,
+          `vendor_id = ${result[0].id}`,
+          1,
+          `id DESC`
+        )
+
+        if(BiddingTrip){
+          result[0].BiddingTrip  = JSON.stringify(BiddingTrip)
+        }else{
+          result[0].BiddingTrip  = JSON.stringify([])
         }
 
         if(WalletHistory){

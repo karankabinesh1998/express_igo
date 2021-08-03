@@ -827,7 +827,9 @@ const AddUser = async(req,res,next) =>{
         )
 
         if(BiddingTrip){
-          result.BiddingTrip  = JSON.stringify(BiddingTrip)
+          result[0].BiddingTrip  = JSON.stringify(BiddingTrip)
+        }else{
+          result[0].BiddingTrip  = JSON.stringify([])
         }
 
 

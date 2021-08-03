@@ -18,7 +18,7 @@ let db_config = {
   
 
   module.exports.startConnection = function () {
-    let connection = mysql.createConnection(db_config);
+    let connection = mysql.createPool(db_config);
     
     connection.query(function (err) {
       if (err) {

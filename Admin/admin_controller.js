@@ -338,7 +338,39 @@ if(GetUserDeatils1){
   }
 };
 
+const AddBidTrips = async(req,res,next)=>{
+  console.log(req.body);
+    try{
 
+    let addData = await Model.addMaster(`tbl_bidding_trips`,req.body)
+
+    if(addData){
+
+      let result = await Model.getAllData(
+        `*`,
+        `tbl_bidding_trips`,
+        `vendor_id=${req.body.vendor_id}`,
+        1,
+        `id DESC`
+      )
+
+      if(result.length){
+
+        console.log(result);
+        res.send(result)
+        res.status(200)
+      }
+      
+    }
+
+    }catch (error) {
+      //db end connection
+      endConnection();
+      console.error(chalk.red(error));
+      res.status(500);
+      next(error);
+    }
+}
 
 const AddUser = async(req,res,next) =>{
     const tableName = `tbl_user_web`;
@@ -785,6 +817,20 @@ const AddUser = async(req,res,next) =>{
         1
       )
       if(result){
+
+        let BiddingTrip = await Model.getAllData(
+          `*`,
+          `tbl_bidding_trips`,
+          `vendor_id = ${result[0].id}`,
+          1,
+          `id DESC`
+        )
+
+        if(BiddingTrip){
+          result.BiddingTrip  = JSON.stringify(BiddingTrip)
+        }
+
+
         let WalletHistory = await Model.getAllData(
           `tbl_wallet_master_history.*`,
           `tbl_user_web,tbl_wallet_master_history`,
@@ -873,6 +919,22 @@ const AddUser = async(req,res,next) =>{
       )
       if(result){
         // console.log(result);
+
+        let BiddingTrip = await Model.getAllData(
+          `*`,
+          `tbl_bidding_trips`,
+          `vendor_id = ${result[0].id}`,
+          1,
+          `id DESC`
+        )
+
+        if(BiddingTrip){
+          result.BiddingTrip  = JSON.stringify(BiddingTrip)
+        }else{
+          result.BiddingTrip  = JSON.stringify([])
+        }
+
+
         let WalletHistory = await Model.getAllData(
           `tbl_wallet_master_history.*`,
           `tbl_user_web,tbl_wallet_master_history`,
@@ -925,7 +987,7 @@ const AddUser = async(req,res,next) =>{
       }else{
 
         result[0].wallethistory = null;
-        // console.log(result);
+        console.log(result);
     
          res.send(result);
          res.status(200);
@@ -1507,18 +1569,83 @@ try{
   }
 
 
+  const NewTrips = async()=>{
+
+    let finalarray =[];
+    try {
+
+      // let d = moment(new Date()).format('MM-DD-YYYY HH:MM:SS');
+      
+      // console.log(d);
+
+      let result = await Model.getAllData(
+        `tbl_trips.*,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
+        `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city`,
+        `tbl_user_web.id = tbl_trips.customer_id and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id `,
+        1,
+        1
+      )
+
+      
+
+      if(result){
+        console.log('====================================');
+        
+        let wait = await result.map((ival,i)=>{
+          
+          let pickDate = new Date(ival.pickup_date);
+          // console.log(pickDate.getTime(),'====',new Date().getTime());
+
+          if(pickDate.getTime() > new Date().getTime() ){
+            finalarray.push(ival)
+          }
+
+          //console.log(ival.pickup_date);
+
+        })
+
+        await Promise.all(wait);
+
+        // console.log(finalarray);
+        return finalarray
+        console.log('====================================');
+      }
+
+      
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  // CheckTRIPS()
+
+  const AddTripsData = async(req,res,next)=>{
+
+    let body = req.body;
+    try {
+
+      console.log(body);
+      
+    } catch (error) {
+      console.error(chalk.red(error));
+    res.status(500);
+    next(error);
+    }
+  }
+
 const TripsJson = async(req,res,next)=>{
   try{
 
     
 
-    let result = await Model.getAllData(
-      `tbl_trips.*,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
-      `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city`,
-      `tbl_user_web.id = tbl_trips.customer_id and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id`,
-      1,
-      1
-    )
+    // let result = await Model.getAllData(
+    //   `tbl_trips.*,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
+    //   `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city`,
+    //   `tbl_user_web.id = tbl_trips.customer_id and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id `,
+    //   1,
+    //   1
+    // )
+    let result = await NewTrips()
     if(result){
       res.status(200)
       res.send(result)
@@ -1598,5 +1725,6 @@ module.exports={
     UpdateUser,
     UploadUserProfile,
     addMaster,
-    AppDocumentUpload
+    AppDocumentUpload,
+    AddBidTrips
   }

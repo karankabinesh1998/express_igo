@@ -69,6 +69,9 @@ const corsOptionsDelegate = (req, res, next) => {
 //  router.post('/login',Controller.LoginAdmin);
 
 
+router.route('/AddBidTrips/:id?')
+.post(Controller.AddBidTrips)
+
 router 
 .route('/UploadUserProfile/:id?')
 .post(Controller.UploadUserProfile)

@@ -143,7 +143,7 @@ router
 
   router.route('/APPregister').post(Controller.APPregister)
 
-router.route('/notify',Controller.CheckoutNotify)
+router.route('/notify').get(Controller.CheckoutNotify)
 
  module.exports = router;
 

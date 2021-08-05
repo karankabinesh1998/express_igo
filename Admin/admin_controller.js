@@ -3,8 +3,55 @@ const { endConnection } = require('../dataBaseConnection');
 const chalk = require("chalk");
 // const { getAllData } = require('../Model');
 const fs = require("fs");
- const mv = require('mv');
- const moment = require('moment')
+const mv = require('mv');
+const moment = require('moment')
+var admin = require("firebase-admin");
+
+const CheckoutNotify = async(req,res,next)=>{
+  try {
+    
+var serviceAccount = require("./igotaxy-firebase-adminsdk-2c5sg-2a09a1a5ee.json");
+
+admin.initializeApp({
+  
+  credential: admin.credential.cert(serviceAccount)
+});
+
+const Token = "dMIvukmlRFGcccQUv0XDK1:APA91bG6g_4Nkq3Ha89XMQ1Q0cztnobn1Gdg1GEWTk_onJ4vYB5q4AqFWOhzsV02DQG8oN82BNuTd7kH1fWFBYRkcoz9kmCgtEawzf2nkAkOY5Ry0-zsOcqOYvr8KFj5jHhTvVP20D8S"
+
+admin.messaging().send({
+  token : Token,
+  data:{
+    customData:"Igotaxy Karan",
+    id:'1',
+    ad:"Your Profile Approved",
+    subTitle:"Notify Sub"
+  },
+  android:{
+    notification:{
+      body:"Nodejs Test Notification 😊",
+      title:"Igotaxy Push Notification 😊",
+      color:"#FFF566",
+      priority:"high",
+      sound:"default",
+      vibrateTimingsMillis:[200,500,800],
+      imageUrl:"https://images.unsplash.com/photo-1606787366850-de6330128bfc?ixid=MnwxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=750&q=80"
+    }
+  }
+}).then((msg)=>{
+  console.log(msg);
+  res.send(msg)
+    res.status(200)
+})
+  } catch (error) {
+    console.log(error);
+    res.send(false)
+    res.status(500)
+  }
+}
+
+// console.log(serviceAccount , "serviceAccount");
+
 
 
  const UploadDocument1 = async (a,b,editImage=false,OldFile = null) =>{
@@ -1730,5 +1777,6 @@ module.exports={
     UploadUserProfile,
     addMaster,
     AppDocumentUpload,
-    AddBidTrips
+    AddBidTrips,
+    CheckoutNotify
   }

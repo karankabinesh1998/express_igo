@@ -7,9 +7,6 @@ const mv = require('mv');
 const moment = require('moment')
 var admin = require("firebase-admin");
 
-const CheckoutNotify = async(req,res,next)=>{
-  try {
-    
 var serviceAccount = require("./igotaxy-firebase-adminsdk-2c5sg-2a09a1a5ee.json");
 
 admin.initializeApp({
@@ -17,8 +14,13 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 
-const Token = "dMIvukmlRFGcccQUv0XDK1:APA91bG6g_4Nkq3Ha89XMQ1Q0cztnobn1Gdg1GEWTk_onJ4vYB5q4AqFWOhzsV02DQG8oN82BNuTd7kH1fWFBYRkcoz9kmCgtEawzf2nkAkOY5Ry0-zsOcqOYvr8KFj5jHhTvVP20D8S"
+const CheckoutNotify = async(req,res,next)=>{
+  try {
+    
 
+
+const Token = req.params.token;
+console.log(Token);
 admin.messaging().send({
   token : Token,
   data:{
@@ -40,8 +42,12 @@ admin.messaging().send({
   }
 }).then((msg)=>{
   console.log(msg);
-  res.send(msg)
+    res.send(msg)
     res.status(200)
+}).catch((err)=>{
+  res.send(err)
+  res.status(404)
+  console.log(err);
 })
   } catch (error) {
     console.log(error);
@@ -213,7 +219,28 @@ const UploadImage = async (a,editImage=false,OldFile = null) =>{
   }
   }
 
+const UpdateToken =async(req,res,next)=>{
+  let body = req.body;
+  let id = req.params.id;
+  try {
 
+    let ChangeStatus = await Model.updateMaster(`tbl_user_web`,id,body);
+
+    if(ChangeStatus){
+
+      console.log(ChangeStatus,"Changestatus");
+        endConnection();
+
+        res.send(result)
+        res.status(200)
+    }
+    
+  } catch (error) {
+    res.status(500)
+    console.log(chalk.red(error));
+    next(error)
+  }
+}
    
 const LoginAdmin = async(req,res,next)=>{
 
@@ -1065,27 +1092,97 @@ const AddUser = async(req,res,next) =>{
     const body = req.body;
     // const id = req.body.id;
     let id = req.params.id;
-  console.log(body);
+   console.log(body);
     try {
-      const result = await Model.updateMaster(
+      const result1 = await Model.updateMaster(
         tableName,
         id,
         body
       );
-      if (result) {
-        console.log(result,"500");
+      if (result1) {
+        console.log(result1,"500");
 
-        let res1 = await Model.getAllData(
+        let result = await Model.getAllData(
           `*`,
           `${tableName}`,
           `id = ${id}`,
           1,
           1
         )
-        if(res1){
-          console.log(res1,"updateMasterApp");
-          res.status(200);
-          res.send(res1);
+        if(result){
+          // console.log(res1,"updateMasterApp");
+          // res.status(200);
+          // res.send(res1);
+          let BiddingTrip = await Model.getAllData(
+            `*`,
+            `tbl_bidding_trips`,
+            `vendor_id = ${result[0].id}`,
+            1,
+            `id DESC`
+          )
+  
+          if(BiddingTrip){
+            result[0].BiddingTrip  = JSON.stringify(BiddingTrip)
+          }else{
+            result[0].BiddingTrip  = JSON.stringify([])
+          }
+  
+  
+          let WalletHistory = await Model.getAllData(
+            `tbl_wallet_master_history.*`,
+            `tbl_user_web,tbl_wallet_master_history`,
+            `tbl_user_web.id = ${result[0].id} and tbl_wallet_master_history.user_id = tbl_user_web.id`,
+            `1`,
+            `tbl_wallet_master_history.id DESC`
+          )
+  
+          let tbl_vendar_documents = await Model.getAllData(
+            `*`,
+            `tbl_vendar_documents`,
+            `userid=${result[0].id}`,
+            1,
+            1
+          )
+          if(tbl_vendar_documents){
+  
+            
+            result[0].Documentation = JSON.stringify(tbl_vendar_documents)
+  
+          }else{
+  
+            result[0].Documentation = null
+  
+          }
+          
+          if(WalletHistory){
+           
+            let arr =[]
+  
+            let wait = await   WalletHistory.map((ival,i)=>{
+              
+              arr.push([i+1 , ival.amount , ival.debited_credited ,ival.created_At])
+  
+            })
+  
+            
+            await Promise.all(wait);
+            
+             result[0].wallethistory = JSON.stringify(arr);
+  
+             console.log(result,1353);
+         
+              res.send(result);
+              res.status(200);
+        }else{
+  
+          result[0].wallethistory = null;
+          // console.log(result);
+      
+           res.send(result,"1181");
+           res.status(200);
+  
+        }
+
         }
 
         
@@ -1249,26 +1346,98 @@ const AddUser = async(req,res,next) =>{
            body.profile_dp = null;
          }
 
-         const result = await Model.updateMaster(
+         const result1 = await Model.updateMaster(
           tableName,
           id,
           body,
           columname
         );
-        if (result) {
+        if (result1) {
           console.log(result,"500");
   
-          let res1 = await Model.getAllData(
+          let result = await Model.getAllData(
             `*`,
             `${tableName}`,
             `id = ${id}`,
             1,
             1
           )
-          if(res1){
-            console.log(res1,"670");
-            res.status(200);
-            res.send(res1);
+          if(result){
+
+            let BiddingTrip = await Model.getAllData(
+              `*`,
+              `tbl_bidding_trips`,
+              `vendor_id = ${result[0].id}`,
+              1,
+              `id DESC`
+            )
+    
+            if(BiddingTrip){
+              result[0].BiddingTrip  = JSON.stringify(BiddingTrip)
+            }else{
+              result[0].BiddingTrip  = JSON.stringify([])
+            }
+    
+    
+            let WalletHistory = await Model.getAllData(
+              `tbl_wallet_master_history.*`,
+              `tbl_user_web,tbl_wallet_master_history`,
+              `tbl_user_web.id = ${result[0].id} and tbl_wallet_master_history.user_id = tbl_user_web.id`,
+              `1`,
+              `tbl_wallet_master_history.id DESC`
+            )
+    
+            let tbl_vendar_documents = await Model.getAllData(
+              `*`,
+              `tbl_vendar_documents`,
+              `userid=${result[0].id}`,
+              1,
+              1
+            )
+            if(tbl_vendar_documents){
+    
+              
+              result[0].Documentation = JSON.stringify(tbl_vendar_documents)
+    
+            }else{
+    
+              result[0].Documentation = null
+    
+            }
+            
+            if(WalletHistory){
+             
+              let arr =[]
+    
+              let wait = await   WalletHistory.map((ival,i)=>{
+                
+                arr.push([i+1 , ival.amount , ival.debited_credited ,ival.created_At])
+    
+              })
+    
+              
+              await Promise.all(wait);
+              
+               result[0].wallethistory = JSON.stringify(arr);
+    
+               console.log(result,1353);
+           
+                res.send(result);
+                res.status(200);
+          }else{
+    
+            result[0].wallethistory = null;
+            // console.log(result);
+        
+             res.send(result);
+             res.status(200);
+    
+          }
+
+
+            // console.log(result,"670");
+            // res.status(200);
+            // res.send(res1);
           }
 
         }
@@ -1778,5 +1947,6 @@ module.exports={
     addMaster,
     AppDocumentUpload,
     AddBidTrips,
-    CheckoutNotify
+    CheckoutNotify,
+    UpdateToken
   }

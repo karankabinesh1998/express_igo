@@ -1,5 +1,6 @@
 
 var express = require('express');
+const { Container } = require('winston');
 
 // const Model = require('../Model');
 
@@ -143,7 +144,9 @@ router
 
   router.route('/APPregister').post(Controller.APPregister)
 
-router.route('/notify').get(Controller.CheckoutNotify)
+router.route('/notify/:token?').get(Controller.CheckoutNotify)
+
+router.route('/UpdateToken/:id?').post(Controller.UpdateToken);
 
  module.exports = router;
 

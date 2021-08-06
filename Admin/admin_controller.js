@@ -14,6 +14,7 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 
+
 const CheckoutNotify = async(req,res,next)=>{
   try {
     
@@ -24,20 +25,65 @@ console.log(Token);
 admin.messaging().send({
   token : Token,
   data:{
-    customData:"Igotaxy Karan",
+    customData:"Igotaxy",
     id:'1',
     ad:"Your Profile Approved",
     subTitle:"Notify Sub"
   },
   android:{
     notification:{
-      body:"Nodejs Test Notification 😊",
-      title:"Igotaxy Push Notification 😊",
+      body:" Your Documents were Approved 😊.You can now able to bid and start your Rides",
+      title:"Congratulations",
       color:"#FFF566",
       priority:"high",
       sound:"default",
       vibrateTimingsMillis:[200,500,800],
-      imageUrl:"https://images.unsplash.com/photo-1606787366850-de6330128bfc?ixid=MnwxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=750&q=80"
+      imageUrl:"https://images.unsplash.com/photo-1556122071-e404eaedb77f?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=719&q=80"
+    }
+  }
+}).then((msg)=>{
+  console.log(msg);
+    res.send(msg)
+    res.status(200)
+}).catch((err)=>{
+  res.send(err)
+  res.status(404)
+  console.log(err);
+})
+  } catch (error) {
+    console.log(error);
+    res.send(false)
+    res.status(500)
+  }
+}
+
+
+const SendAssignedTripNotification = async(req,res,next)=>{
+  try {
+    
+    let body = req.body;
+
+
+// const Token = req.params.token;
+// console.log(Token);
+admin.messaging().send({
+  token : body.token,
+  data:{
+    customData:"Igotaxy",
+    id:'1',
+    ad:"Your Profile Approved",
+    subTitle:"Notify Sub"
+  },
+  android:{
+    notification:{
+      body:body.body,
+      title: body.title,
+      color:"#FFF566",
+      priority:"high",
+      sound:"default",
+      vibrateTimingsMillis:[200,500,800],
+      imageUrl:"https://images.unsplash.com/photo-1556122071-e404eaedb77f?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=719&q=80"
+      // "https://images.unsplash.com/photo-1556122071-e404eaedb77f?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=719&q=80"
     }
   }
 }).then((msg)=>{
@@ -794,11 +840,14 @@ const AddUser = async(req,res,next) =>{
     try {
 
       if(newcustomer==0){
+        body.trip_id = await randomString(10, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
         
         const result = await Model.addMaster(`tbl_trips`, body );
 
         if(result){
           console.log(result);
+
+
 
           let getData = await Model.getAllData(`*`,`tbl_trips`,`id=${result.insertId}`,1,1)
 
@@ -895,15 +944,15 @@ const AddUser = async(req,res,next) =>{
         let BiddingTrip = await Model.getAllData(
           `*`,
           `tbl_bidding_trips`,
-          `vendor_id = ${result[0].id}`,
+          `vendor_id = ${result[0].id} and status = 'approved'`,
           1,
           `id DESC`
         )
 
         if(BiddingTrip){
-          result[0].BiddingTrip  = JSON.stringify(BiddingTrip)
+          result[0].BiddingTrip  = JSON.stringify(BiddingTrip);
         }else{
-          result[0].BiddingTrip  = JSON.stringify([])
+          result[0].BiddingTrip  = JSON.stringify([]);
         }
 
 
@@ -1086,6 +1135,69 @@ const AddUser = async(req,res,next) =>{
       next(error);
     }
   };
+
+  const UpdateBiddingApproval = async(req,res,next)=>{
+    const tableName = req.params.tableName;
+    const body = req.body.categoryArray;
+    const id = req.body.id;
+    let columname = req.params.id;
+
+    console.log(req.params);
+    console.log(req.body);
+    try {
+
+     const FetchData = await Model.getAllData(
+       `id`,
+       `tbl_bidding_trips`,
+       `trip_id = ${req.params.vend_id}`,
+       1,
+       1
+     )
+     if(FetchData){
+       console.log(FetchData,"1157");
+
+       let wait = await FetchData.map(async(ival,i)=>{
+
+        if(ival.id == id){
+          let result1 = await Model.updateMaster(
+            tableName,
+            id,
+            body
+          );
+        }else{
+          let result2 = await Model.updateMaster(
+            tableName,
+            ival.id,
+            {status : 'waiting'}
+          );
+        }
+
+        if(i+1==FetchData.length){
+          let result11 = await Model.getAllData(
+            `tbl_bidding_trips.*,tbl_user_web.username as UserName,tbl_user_web.token,tbl_trips.trip_assigned_to`,
+            `tbl_bidding_trips,tbl_user_web,tbl_trips`,
+            `tbl_bidding_trips.vendor_id = tbl_user_web.id and  tbl_trips.id = tbl_bidding_trips.trip_id  and tbl_bidding_trips.trip_id = ${req.params.vend_id}`,
+            1,
+            `tbl_bidding_trips.req_amount `
+        ) 
+        if(result11){
+          res.send(result11);
+          res.status(200)
+        }
+        }
+
+       })
+
+       await Promise.all(wait)
+
+     }
+      
+    } catch (error) {
+      console.error(chalk.red(error));
+      res.status(500);
+      next(error);
+    }
+  }
 
   const updateMasterApp = async (req, res, next) => {
     const tableName = req.params.tableName;
@@ -1839,19 +1951,7 @@ try{
 
   // CheckTRIPS()
 
-  const AddTripsData = async(req,res,next)=>{
-
-    let body = req.body;
-    try {
-
-      console.log(body);
-      
-    } catch (error) {
-      console.error(chalk.red(error));
-    res.status(500);
-    next(error);
-    }
-  }
+ 
 
 const TripsJson = async(req,res,next)=>{
   try{
@@ -1948,5 +2048,7 @@ module.exports={
     AppDocumentUpload,
     AddBidTrips,
     CheckoutNotify,
-    UpdateToken
+    UpdateToken,
+    SendAssignedTripNotification,
+    UpdateBiddingApproval
   }

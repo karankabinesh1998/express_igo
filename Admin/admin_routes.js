@@ -88,6 +88,8 @@ router
   .put(Controller.updateMaster)
   .delete(corsOptionsDelegate, Controller.deleteMaster);
 
+  router.route('/UpdateBiddingApproval/:tableName/:id?/:vend_id?').put(Controller.UpdateBiddingApproval)
+
   router
   .route("/appmaster/:tableName/:id?/:order?")
   // .post(corsOptionsDelegate, cmsContent.addMaster)
@@ -145,8 +147,11 @@ router
   router.route('/APPregister').post(Controller.APPregister)
 
 router.route('/notify/:token?').get(Controller.CheckoutNotify)
+router.route('/SendAssignedTripNotification').post(Controller.SendAssignedTripNotification)
 
 router.route('/UpdateToken/:id?').post(Controller.UpdateToken);
+
+
 
  module.exports = router;
 

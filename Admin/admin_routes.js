@@ -151,7 +151,7 @@ router.route('/SendAssignedTripNotification').post(Controller.SendAssignedTripNo
 
 router.route('/UpdateToken/:id?').post(Controller.UpdateToken);
 
-
+router.route('/AddDriverdata/:id?').post(Controller.AddDriverdata).put(Controller.EditDriverdata)
 
  module.exports = router;
 

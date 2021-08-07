@@ -1709,6 +1709,109 @@ const AddUser = async(req,res,next) =>{
   }
 
 
+  const EditDriverdata = async(req,res,next)=>{
+    try {
+
+      let body = req.body;
+
+      console.log(body);
+
+      console.log(req.files)
+
+      if( body.file1 !='' ){
+        body.driving_license_front = await UploadDocument1(req.files.file1,body.vendor,true,body.driving_license_front);
+
+        console.log(body);
+      }else if(body.file2 !=''){
+        body.driving_licence_back = await UploadDocument1(req.files.file2,body.vendor,true,body.driving_license_back);
+      }else if( body.file3 !='' ){
+        body.police_verify = await UploadDocument1(req.files.file3,body.vendor,true,body.police_verify);
+      }
+
+      delete body.file1;
+      delete body.file2; 
+      delete body.file3;  
+
+      let result = await Model.updateMaster(
+        `tbl_vendor_drivers`,
+        req.params.id,
+        body)
+
+      
+
+      if(result){
+
+        let FetchData = await Model.getAllData(
+          `tbl_vendor_drivers.*,tbl_user_web.username`,
+          `tbl_vendor_drivers,tbl_user_web`,
+          `tbl_vendor_drivers.vendor = tbl_user_web.id and tbl_user_web.status = 1`,
+          1,
+          `tbl_user_web.id`
+        )
+        if(FetchData){
+          console.log(FetchData);
+          res.send(FetchData)
+          res.status(200)
+        }
+
+      }
+      
+    } catch (error) {
+      endConnection();
+      console.error(chalk.red(error));
+      res.status(500);
+      next(error);
+    }
+  }
+
+
+  const AddDriverdata = async(req,res,next)=>{
+    try {
+
+      let body = req.body;
+
+      console.log(body);
+
+      console.log(req.files)
+
+      if(req.files.file1){
+        body.driving_license_front = await UploadDocument1(req.files.file1,body.vendor);
+
+        console.log(body);
+      }else if(req.files.file2){
+        body.driving_licence_back = await UploadDocument1(req.files.file2,body.vendor);
+      }else if(req.files.file3){
+        body.police_verify = await UploadDocument1(req.files.file3,body.vendor);
+      }
+
+      let result = await Model.addMaster(`tbl_vendor_drivers`,body)
+
+      if(result){
+
+        let FetchData = await Model.getAllData(
+          `tbl_vendor_drivers.*,tbl_user_web.username`,
+          `tbl_vendor_drivers,tbl_user_web`,
+          `tbl_vendor_drivers.vendor = tbl_user_web.id and tbl_user_web.status = 1`,
+          1,
+          `tbl_user_web.id`
+        )
+        if(FetchData){
+          console.log(FetchData);
+          res.send(FetchData)
+          res.status(200)
+        }
+
+      }
+      
+    } catch (error) {
+      endConnection();
+      console.error(chalk.red(error));
+      res.status(500);
+      next(error);
+    }
+  }
+
+
   const UpdateUniqueCity = async(req,res,next) =>{
     let body = req.body;
     let id = req.params.id;
@@ -2050,5 +2153,7 @@ module.exports={
     CheckoutNotify,
     UpdateToken,
     SendAssignedTripNotification,
-    UpdateBiddingApproval
+    UpdateBiddingApproval,
+    AddDriverdata,
+    EditDriverdata
   }

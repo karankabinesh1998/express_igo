@@ -458,21 +458,54 @@ if(GetUserDeatils1){
   }
 };
 
+const UpdateBiddingTrip = async(req,res,next)=>{
+  let id = req.params.id;
+  let vendor_id = req.params.vendor_id;
+  let body = req.body;
+  try{
+
+    let ChangeStatus = await Model.updateMaster(`tbl_bidding_trips`,id,body);
+    console.log(ChangeStatus);
+
+    if(ChangeStatus){
+
+      let result = await NewTrips(vendor_id);
+
+      if(result){
+        res.send(result)
+        res.status(200)
+      }
+
+    }
+
+
+  } catch (error) {
+    //db end connection
+    endConnection();
+    console.error(chalk.red(error));
+    res.status(500);
+    next(error);
+  }
+}
+
 const AddBidTrips = async(req,res,next)=>{
   console.log(req.body);
+  let vend = req.params.vendor_id;
     try{
 
     let addData = await Model.addMaster(`tbl_bidding_trips`,req.body)
 
     if(addData){
 
-      let result = await Model.getAllData(
-        `*`,
-        `tbl_bidding_trips`,
-        `vendor_id=${req.body.vendor_id}`,
-        1,
-        `id DESC`
-      )
+      // let result = await Model.getAllData(
+      //   `*`,
+      //   `tbl_bidding_trips`,
+      //   `vendor_id=${req.body.vendor_id}`,
+      //   1,
+      //   `id DESC`
+      // )
+
+      let result = await NewTrips(vend);
 
       if(result.length){
 
@@ -938,7 +971,7 @@ const AddUser = async(req,res,next) =>{
         `id=${id}`,
         1,
         1
-      )
+      );
       if(result){
 
         let BiddingTrip = await Model.getAllData(
@@ -947,12 +980,28 @@ const AddUser = async(req,res,next) =>{
           `vendor_id = ${result[0].id} and status = 'approved'`,
           1,
           `id DESC`
-        )
+        );
+
+
 
         if(BiddingTrip){
           result[0].BiddingTrip  = JSON.stringify(BiddingTrip);
         }else{
           result[0].BiddingTrip  = JSON.stringify([]);
+        }
+
+        let vendorDrivers = await Model.getAllData(
+          `*`,
+          `tbl_vendor_drivers`,
+          `vendor=${result[0].id}`,
+          1,
+          `id`
+        )
+
+        if(vendorDrivers){
+          result[0].vendorDrivers = JSON.stringify(vendorDrivers)
+        }else{
+          result[0].vendorDrivers = JSON.stringify([])
         }
 
 
@@ -1045,7 +1094,19 @@ const AddUser = async(req,res,next) =>{
       if(result){
         // console.log(result);
 
-        
+        let vendorDrivers = await Model.getAllData(
+          `*`,
+          `tbl_vendor_drivers`,
+          `vendor=${result[0].id}`,
+          1,
+          `id`
+        )
+
+        if(vendorDrivers){
+          result[0].vendorDrivers = JSON.stringify(vendorDrivers)
+        }else{
+          result[0].vendorDrivers = JSON.stringify([])
+        }
 
 
         let WalletHistory = await Model.getAllData(
@@ -1174,7 +1235,7 @@ const AddUser = async(req,res,next) =>{
 
         if(i+1==FetchData.length){
           let result11 = await Model.getAllData(
-            `tbl_bidding_trips.*,tbl_user_web.username as UserName,tbl_user_web.token,tbl_trips.trip_assigned_to`,
+            `tbl_bidding_trips.*,tbl_user_web.username as UserName,tbl_user_web.token,tbl_trips.trip_assigned_to,tbl_user_web.wallet as userwallet,tbl_user_web.id as VendorId`,
             `tbl_bidding_trips,tbl_user_web,tbl_trips`,
             `tbl_bidding_trips.vendor_id = tbl_user_web.id and  tbl_trips.id = tbl_bidding_trips.trip_id  and tbl_bidding_trips.trip_id = ${req.params.vend_id}`,
             1,
@@ -1719,18 +1780,24 @@ const AddUser = async(req,res,next) =>{
       console.log(req.files)
 
       if( body.file1 !='' ){
-        body.driving_license_front = await UploadDocument1(req.files.file1,body.vendor,true,body.driving_license_front);
+        body.driving_license_front = await UploadDocument1(req.files.file1,body.vendor,true,body.d_front);
 
         console.log(body);
       }else if(body.file2 !=''){
-        body.driving_licence_back = await UploadDocument1(req.files.file2,body.vendor,true,body.driving_license_back);
+        body.driving_license_back = await UploadDocument1(req.files.file2,body.vendor,true,body.d_back);
       }else if( body.file3 !='' ){
-        body.police_verify = await UploadDocument1(req.files.file3,body.vendor,true,body.police_verify);
+        body.police_verify = await UploadDocument1(req.files.file3,body.vendor,true,body.police_c);
       }
+
+      delete body.d_front
+      delete body.d_back
+      delete body.police_c
 
       delete body.file1;
       delete body.file2; 
       delete body.file3;  
+
+      console.log(body,"1739");
 
       let result = await Model.updateMaster(
         `tbl_vendor_drivers`,
@@ -1765,6 +1832,60 @@ const AddUser = async(req,res,next) =>{
   }
 
 
+  const AddDriverdata1 = async(req,res,next)=>{
+    try {
+
+      let body = req.body;
+
+      console.log(body);
+
+      console.log(req.files)
+
+      if(req.files.file1){
+        body.driving_license_front = await UploadDocument1(req.files.file1,body.vendor);
+
+        console.log(body);
+      }else if(req.files.file2){
+        body.driving_licence_back = await UploadDocument1(req.files.file2,body.vendor);
+      }else if(req.files.file3){
+        body.police_verify = await UploadDocument1(req.files.file3,body.vendor);
+      }
+
+      delete body.file1;
+      delete body.file2; 
+      delete body.file3;
+
+      console.log(body,"1858");
+
+      let result = await Model.addMaster(`tbl_vendor_drivers`,body)
+
+      if(result){
+
+        console.log(result,"1864");
+
+        let FetchData = await Model.getAllData(
+          `tbl_vendor_drivers.*,tbl_user_web.username`,
+          `tbl_vendor_drivers,tbl_user_web`,
+          `tbl_vendor_drivers.vendor = tbl_user_web.id and tbl_user_web.status = 1 and tbl_vendor_drivers.vendor =${body.vendor} `,
+          1,
+          `tbl_user_web.id`
+        )
+        if(FetchData){
+          console.log(FetchData);
+          res.send(FetchData)
+          res.status(200)
+        }
+
+      }
+      
+    } catch (error) {
+      endConnection();
+      console.error(chalk.red(error));
+      res.status(500);
+      next(error);
+    }
+  }
+
   const AddDriverdata = async(req,res,next)=>{
     try {
 
@@ -1783,6 +1904,10 @@ const AddUser = async(req,res,next) =>{
       }else if(req.files.file3){
         body.police_verify = await UploadDocument1(req.files.file3,body.vendor);
       }
+
+      delete body.file1;
+      delete body.file2; 
+      delete body.file3;
 
       let result = await Model.addMaster(`tbl_vendor_drivers`,body)
 
@@ -2004,9 +2129,11 @@ try{
   }
 
 
-  const NewTrips = async()=>{
+  const NewTrips = async(id)=>{
 
     let finalarray =[];
+   
+
     try {
 
       // let d = moment(new Date()).format('MM-DD-YYYY HH:MM:SS');
@@ -2018,8 +2145,34 @@ try{
         `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city`,
         `tbl_user_web.id = tbl_trips.customer_id and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id `,
         1,
+        `tbl_trips.id DESC`
+      );
+
+
+      let tbl_bidding_trips = await Model.getAllData(
+        `*`,
+        `tbl_bidding_trips`,
+        `vendor_id = ${id}`,
+        1,
         1
-      )
+      );
+
+      let wait = result.map((ival,i)=>{
+         tbl_bidding_trips.map((jval,j)=>{
+
+             ival.bidding_amount = 'No bidding';
+             ival.tbl_bidding_id = null
+
+             if(ival.id == jval.trip_id && jval.vendor_id == id ){
+               ival.bidding_amount = jval.req_amount;
+               ival.tbl_bidding_id = jval.id;
+             }
+          
+
+         })
+      })
+
+      await Promise.all(wait)
 
       
 
@@ -2041,9 +2194,9 @@ try{
 
         await Promise.all(wait);
 
-        // console.log(finalarray);
+        console.log(finalarray);
         return finalarray
-        console.log('====================================');
+        // console.log('====================================');
       }
 
       
@@ -2054,13 +2207,40 @@ try{
 
   // CheckTRIPS()
 
+  const TripsJsons = async(req,res,next)=>{
+    try{
+  
+      
+      // let id = req.params.id;
+      // console.log(id);
+      let result = await Model.getAllData(
+        `tbl_trips.*,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
+        `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city`,
+        `tbl_user_web.id = tbl_trips.customer_id and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id `,
+        1,
+        `tbl_trips.id DESC`
+      );
+      // let result = await NewTrips(id)
+      if(result){
+        res.status(200)
+        res.send(result)
+      }
+  
+    }catch(error){
+      console.error(chalk.red(error));
+      res.status(500);
+      next(error);
+    }
+    
+    }
  
 
 const TripsJson = async(req,res,next)=>{
   try{
 
     
-
+    let id = req.params.id;
+    console.log(id);
     // let result = await Model.getAllData(
     //   `tbl_trips.*,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
     //   `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city`,
@@ -2068,7 +2248,7 @@ const TripsJson = async(req,res,next)=>{
     //   1,
     //   1
     // )
-    let result = await NewTrips()
+    let result = await NewTrips(id)
     if(result){
       res.status(200)
       res.send(result)
@@ -2155,5 +2335,8 @@ module.exports={
     SendAssignedTripNotification,
     UpdateBiddingApproval,
     AddDriverdata,
-    EditDriverdata
+    EditDriverdata,
+    UpdateBiddingTrip,
+    TripsJsons,
+    AddDriverdata1
   }

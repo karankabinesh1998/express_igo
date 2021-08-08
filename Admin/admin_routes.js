@@ -70,8 +70,9 @@ const corsOptionsDelegate = (req, res, next) => {
 //  router.post('/login',Controller.LoginAdmin);
 
 
-router.route('/AddBidTrips/:id?')
+router.route('/AddBidTrips/:id?/:vendor_id?')
 .post(Controller.AddBidTrips)
+.put(Controller.UpdateBiddingTrip)
 
 router 
 .route('/UploadUserProfile/:id?')
@@ -137,8 +138,12 @@ router
   .get(Controller.TripsData)
 
   router
-  .route('/TripsJson')
+  .route('/TripsJson/:id?')
   .get(Controller.TripsJson)
+
+  router
+  .route('/TripsJsons')
+  .get(Controller.TripsJsons)
 
   router
   .route('/profile/:filename')
@@ -152,6 +157,8 @@ router.route('/SendAssignedTripNotification').post(Controller.SendAssignedTripNo
 router.route('/UpdateToken/:id?').post(Controller.UpdateToken);
 
 router.route('/AddDriverdata/:id?').post(Controller.AddDriverdata).put(Controller.EditDriverdata)
+
+router.route('/AddDriverdata1/:id?').post(Controller.AddDriverdata1)
 
  module.exports = router;
 

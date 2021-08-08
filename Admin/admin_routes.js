@@ -160,6 +160,8 @@ router.route('/AddDriverdata/:id?').post(Controller.AddDriverdata).put(Controlle
 
 router.route('/AddDriverdata1/:id?').post(Controller.AddDriverdata1)
 
+router.route('/Addcabs1/:id?').post(Controller.Addcabs1)
+
  module.exports = router;
 
  

@@ -1004,6 +1004,19 @@ const AddUser = async(req,res,next) =>{
           result[0].vendorDrivers = JSON.stringify([])
         }
 
+        let vendorCabs = await Model.getAllData(
+          `*`,
+          `tbl_vendor_cabs`,
+          `vendor=${result[0].id}`,
+          1,
+          `id`
+        )
+
+        if(vendorCabs){
+          result[0].vendorCabs = JSON.stringify(vendorCabs)
+        }else{
+          result[0].vendorCabs = JSON.stringify([])
+        }
 
         let WalletHistory = await Model.getAllData(
           `tbl_wallet_master_history.*`,
@@ -1107,6 +1120,21 @@ const AddUser = async(req,res,next) =>{
         }else{
           result[0].vendorDrivers = JSON.stringify([])
         }
+
+        let vendorCabs = await Model.getAllData(
+          `*`,
+          `tbl_vendor_cabs`,
+          `vendor=${result[0].id}`,
+          1,
+          `id`
+        )
+
+        if(vendorCabs){
+          result[0].vendorCabs = JSON.stringify(vendorCabs)
+        }else{
+          result[0].vendorCabs = JSON.stringify([])
+        }
+
 
 
         let WalletHistory = await Model.getAllData(
@@ -1832,6 +1860,63 @@ const AddUser = async(req,res,next) =>{
   }
 
 
+  const Addcabs1 = async(req,res,next)=>{
+    try {
+
+      let body = req.body;
+
+      console.log(body);
+
+      console.log(req.files)
+
+      if(req.files.file1){
+        body.cab_image_front = await UploadDocument1(req.files.file1,body.vendor);
+
+        // console.log(body);
+      }else if(req.files.file2){
+        body.cab_image_back = await UploadDocument1(req.files.file2,body.vendor);
+      }else if(req.files.file3){
+        body.cab_image_side = await UploadDocument1(req.files.file3,body.vendor);
+      }else if(req.files.file4){
+        body.cab_insurance = await UploadDocument1(req.files.file3,body.vendor);
+      }
+
+      delete body.file1;
+      delete body.file2; 
+      delete body.file3;
+      delete body.file4;
+
+      console.log(body,"1858");
+
+      let result = await Model.addMaster(`tbl_vendor_cabs`,body)
+
+      if(result){
+
+        console.log(result,"1864");
+
+        let FetchData = await Model.getAllData(
+          `tbl_vendor_cabs.*,tbl_user_web.username`,
+          `tbl_vendor_cabs,tbl_user_web`,
+          `tbl_vendor_cabs.vendor = tbl_user_web.id and tbl_user_web.status = 1 and tbl_vendor_cabs.vendor =${body.vendor} `,
+          1,
+          `tbl_user_web.id`
+        )
+        if(FetchData){
+          console.log(FetchData);
+          res.send(FetchData)
+          res.status(200)
+        }
+
+      }
+      
+    } catch (error) {
+      endConnection();
+      console.error(chalk.red(error));
+      res.status(500);
+      next(error);
+    }
+  }
+
   const AddDriverdata1 = async(req,res,next)=>{
     try {
 
@@ -1907,7 +1992,7 @@ const AddUser = async(req,res,next) =>{
 
       delete body.file1;
       delete body.file2; 
-      delete body.file3;
+      delete body.file3;   
 
       let result = await Model.addMaster(`tbl_vendor_drivers`,body)
 
@@ -2338,5 +2423,6 @@ module.exports={
     EditDriverdata,
     UpdateBiddingTrip,
     TripsJsons,
-    AddDriverdata1
+    AddDriverdata1,
+    Addcabs1
   }

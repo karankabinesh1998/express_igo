@@ -136,6 +136,7 @@ admin.messaging().send({
   sampleFile.mv(uploadPath, function(err) {
     if (err)
       return err;
+      console.log(uploadPath);
     //res.send('File uploaded!');
    // return uploadPath
   });
@@ -151,7 +152,7 @@ admin.messaging().send({
 
   }
 
-return sendfile
+  return sendfile
    
 } catch (error) {
    console.log(error);
@@ -990,6 +991,26 @@ const AddUser = async(req,res,next) =>{
           result[0].BiddingTrip  = JSON.stringify([]);
         }
 
+let ActiveTrips = await Model.getAllData(
+  `tbl_active_trips.*,tbl_trips.trip_id as Id_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
+  tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
+  tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
+  
+  `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
+  
+  `tbl_active_trips.vendor_id=${result[0].id} and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
+  DropCity.id = tbl_trips.drop_location `,
+  1,
+  `tbl_active_trips.id`
+)
+
+        if(ActiveTrips){
+          result[0].ActiveTrips = JSON.stringify(ActiveTrips)
+        }else{
+          result[0].ActiveTrips = JSON.stringify([])
+        }
+
+
         let vendorDrivers = await Model.getAllData(
           `*`,
           `tbl_vendor_drivers`,
@@ -1136,6 +1157,26 @@ const AddUser = async(req,res,next) =>{
         }
 
 
+        let ActiveTrips = await Model.getAllData(
+          `tbl_active_trips.*,tbl_trips.trip_id as T_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
+          tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
+          tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
+          
+          `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
+          
+          `tbl_active_trips.vendor_id=${result[0].id} and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
+          DropCity.id = tbl_trips.drop_location `,
+          1,
+          `tbl_active_trips.id`
+        )
+
+        if(ActiveTrips){
+          result[0].ActiveTrips = JSON.stringify(ActiveTrips)
+        }else{
+          result[0].ActiveTrips = JSON.stringify([])
+        }
+
+
 
         let WalletHistory = await Model.getAllData(
           `tbl_wallet_master_history.*`,
@@ -1192,7 +1233,7 @@ const AddUser = async(req,res,next) =>{
           
           await Promise.all(wait);
 
-          console.log(arr,"arrarrarr");
+          console.log(result,"arrarrarr");
           
            result[0].wallethistory = JSON.stringify(arr);
            console.log(result,"resultresultresult");
@@ -1314,6 +1355,56 @@ const AddUser = async(req,res,next) =>{
           // console.log(res1,"updateMasterApp");
           // res.status(200);
           // res.send(res1);
+
+          let vendorDrivers = await Model.getAllData(
+            `*`,
+            `tbl_vendor_drivers`,
+            `vendor=${result[0].id}`,
+            1,
+            `id`
+          )
+  
+          if(vendorDrivers){
+            result[0].vendorDrivers = JSON.stringify(vendorDrivers)
+          }else{
+            result[0].vendorDrivers = JSON.stringify([])
+          }
+  
+          let vendorCabs = await Model.getAllData(
+            `*`,
+            `tbl_vendor_cabs`,
+            `vendor=${result[0].id}`,
+            1,
+            `id`
+          )
+  
+          if(vendorCabs){
+            result[0].vendorCabs = JSON.stringify(vendorCabs)
+          }else{
+            result[0].vendorCabs = JSON.stringify([])
+          }
+  
+  
+          let ActiveTrips = await Model.getAllData(
+            `tbl_active_trips.*,tbl_trips.trip_id as T_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
+            tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
+            tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
+            
+            `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
+            
+            `tbl_active_trips.vendor_id=${result[0].id} and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
+            DropCity.id = tbl_trips.drop_location `,
+            1,
+            `tbl_active_trips.id`
+          )
+  
+          if(ActiveTrips){
+            result[0].ActiveTrips = JSON.stringify(ActiveTrips)
+          }else{
+            result[0].ActiveTrips = JSON.stringify([])
+          }
+
+
           let BiddingTrip = await Model.getAllData(
             `*`,
             `tbl_bidding_trips`,
@@ -1578,6 +1669,49 @@ const AddUser = async(req,res,next) =>{
             }else{
               result[0].BiddingTrip  = JSON.stringify([])
             }
+
+            let vendorDrivers = await Model.getAllData(
+              `*`,
+              `tbl_vendor_drivers`,
+              `vendor=${result[0].id}`,
+              1,
+              `id`
+            )
+    
+            if(vendorDrivers){
+              result[0].vendorDrivers = JSON.stringify(vendorDrivers)
+            }else{
+              result[0].vendorDrivers = JSON.stringify([])
+            }
+    
+            let vendorCabs = await Model.getAllData(
+              `*`,
+              `tbl_vendor_cabs`,
+              `vendor=${result[0].id}`,
+              1,
+              `id`
+            )
+    
+            if(vendorCabs){
+              result[0].vendorCabs = JSON.stringify(vendorCabs)
+            }else{
+              result[0].vendorCabs = JSON.stringify([])
+            }
+    
+    
+            let ActiveTrips = await Model.getAllData(
+              `*`,
+              `tbl_active_trips`,
+              `vendor_id=${result[0].id}`,
+              1,
+              `id`
+            )
+    
+            if(vendorCabs){
+              result[0].ActiveTrips = JSON.stringify(ActiveTrips)
+            }else{
+              result[0].ActiveTrips = JSON.stringify([])
+            }
     
     
             let WalletHistory = await Model.getAllData(
@@ -1817,9 +1951,9 @@ const AddUser = async(req,res,next) =>{
         body.police_verify = await UploadDocument1(req.files.file3,body.vendor,true,body.police_c);
       }
 
-      delete body.d_front
-      delete body.d_back
-      delete body.police_c
+      delete body.d_front;
+      delete body.d_back;
+      delete body.police_c;
 
       delete body.file1;
       delete body.file2; 
@@ -1859,6 +1993,133 @@ const AddUser = async(req,res,next) =>{
     }
   }
 
+  const Addcabs = async(req,res,next)=>{
+    try {
+
+      let body = req.body;
+      let File = req.body.file;
+
+      File = JSON.parse(File)
+
+      console.log(File)
+
+      let wait = await File.map(async(ival,i)=>{
+        
+        if(ival=='file1' && req.files.file1){
+          body.cab_image_front = await UploadDocument1(req.files.file1,body.vendor)
+        }else if(ival=='file2' && req.files.file2){
+          body.cab_image_back = await UploadDocument1(req.files.file2,body.vendor);
+        }else if(ival=='file3' && req.files.file3){
+          body.cab_image_side = await UploadDocument1(req.files.file3,body.vendor);
+        }else if(ival=='file4' && req.files.file4){
+          body.cab_insurance = await UploadDocument1(req.files.file4,body.vendor);
+        }
+      });
+
+      await Promise.all(wait);
+
+
+      delete body.file1;
+      delete body.file2; 
+      delete body.file3;
+      delete body.file4;
+      delete body.file;
+
+      console.log(body,"1858");
+
+      let result = await Model.addMaster(`tbl_vendor_cabs`,body)
+
+      if(result){
+
+        console.log(result,"1864");
+
+        let FetchData = await Model.getAllData(
+          `tbl_vendor_cabs.*,tbl_user_web.username`,
+          `tbl_vendor_cabs,tbl_user_web`,
+          `tbl_vendor_cabs.vendor = tbl_user_web.id and tbl_user_web.status = 1`,
+          1,
+          `tbl_user_web.id`
+        )
+        if(FetchData){
+          console.log(FetchData);
+          res.send(FetchData)
+          res.status(200)
+        }
+
+      }
+      
+    } catch (error) {
+      endConnection();
+      console.error(chalk.red(error));
+      res.status(500);
+      next(error);
+    }
+  }
+
+
+    const ConfirmActiveTrip = async(req,res,next)=>{
+
+    try{
+
+      let body = req.body;
+
+      console.log(body)
+
+      let CustomerId = await Model.getAllData(
+        `tbl_user_web.id as cusId`,
+        `tbl_trips,tbl_user_web`,
+        `tbl_trips.id = ${body.trip_id} and tbl_trips.customer_id = tbl_user_web.id and tbl_user_web.status = 1`,
+        1,
+        1
+      )
+
+      if(CustomerId){
+
+        body.customer_id = CustomerId[0].cusId;
+
+        let Data = await Model.addMaster(`tbl_active_trips`,body)
+
+        if(Data){
+
+          let UpdateBiddings = await Model.updateMaster(
+            `tbl_bidding_trips`,
+            body.trip_id,
+            {status:'triptaken'},
+            "trip_id"
+          )
+
+          if(UpdateBiddings){
+
+
+            let ActiveTrips = await Model.getAllData(
+              `*`,
+              `tbl_bidding_trips`,
+              `vendor_id=${body.vendor_id}`,
+              1,
+              `id`
+            )
+            if(ActiveTrips){
+
+              res.send(ActiveTrips)
+              res.status(200)
+
+            }
+
+          }
+
+        }
+        // console.log(CustomerId);
+      }
+
+
+    } catch (error) {
+
+    endConnection();
+    console.error(chalk.red(error));
+    res.status(500);
+    next(error);
+    }
+    }
 
   const Addcabs1 = async(req,res,next)=>{
     try {
@@ -1869,22 +2130,33 @@ const AddUser = async(req,res,next) =>{
 
       console.log(req.files)
 
-      if(req.files.file1){
-        body.cab_image_front = await UploadDocument1(req.files.file1,body.vendor);
+      let File = req.body.file;
 
-        // console.log(body);
-      }else if(req.files.file2){
-        body.cab_image_back = await UploadDocument1(req.files.file2,body.vendor);
-      }else if(req.files.file3){
-        body.cab_image_side = await UploadDocument1(req.files.file3,body.vendor);
-      }else if(req.files.file4){
-        body.cab_insurance = await UploadDocument1(req.files.file3,body.vendor);
-      }
+        File = JSON.parse(File)
+
+      // console.log(File)
+
+      let wait = await File.map(async(ival,i)=>{
+        
+        if(ival=='file1' && req.files.file1){
+          body.cab_image_front = await UploadDocument1(req.files.file1,body.vendor)
+        }else if(ival=='file2' && req.files.file2){
+          body.cab_image_back = await UploadDocument1(req.files.file2,body.vendor);
+        }else if(ival=='file3' && req.files.file3){
+          body.cab_image_side = await UploadDocument1(req.files.file3,body.vendor);
+        }else if(ival=='file4' && req.files.file4){
+          body.cab_insurance = await UploadDocument1(req.files.file4,body.vendor);
+        }
+      });
+
+      await Promise.all(wait)
+
 
       delete body.file1;
       delete body.file2; 
       delete body.file3;
       delete body.file4;
+      delete body.file;
 
       console.log(body,"1858");
 
@@ -1926,19 +2198,41 @@ const AddUser = async(req,res,next) =>{
 
       console.log(req.files)
 
-      if(req.files.file1){
-        body.driving_license_front = await UploadDocument1(req.files.file1,body.vendor);
+      // if(req.files.file1){
+      //   body.driving_license_front = await UploadDocument1(req.files.file1,body.vendor);
 
-        console.log(body);
-      }else if(req.files.file2){
+      //   console.log(body);
+      // }else if(req.files.file2){
+      //   body.driving_licence_back = await UploadDocument1(req.files.file2,body.vendor);
+      // }else if(req.files.file3){
+      //   body.police_verify = await UploadDocument1(req.files.file3,body.vendor);
+      // }
+
+      
+
+      let File = req.body.file;
+
+      File = JSON.parse(File)
+
+    // console.log(File)
+
+    let wait = await File.map(async(ival,i)=>{
+      
+      if(ival=='file1' && req.files.file1){
+        body.driving_license_front = await UploadDocument1(req.files.file1,body.vendor)
+      }else if(ival=='file2' && req.files.file2){
         body.driving_licence_back = await UploadDocument1(req.files.file2,body.vendor);
-      }else if(req.files.file3){
+      }else if(ival=='file3' && req.files.file3){
         body.police_verify = await UploadDocument1(req.files.file3,body.vendor);
       }
+    });
 
-      delete body.file1;
+    await Promise.all(wait)
+
+    delete body.file1;
       delete body.file2; 
       delete body.file3;
+      delete body.file;
 
       console.log(body,"1858");
 
@@ -1980,19 +2274,29 @@ const AddUser = async(req,res,next) =>{
 
       console.log(req.files)
 
-      if(req.files.file1){
-        body.driving_license_front = await UploadDocument1(req.files.file1,body.vendor);
+      let File = req.body.file;
 
-        console.log(body);
-      }else if(req.files.file2){
+      File = JSON.parse(File)
+
+    // console.log(File)
+
+    let wait = await File.map(async(ival,i)=>{
+      
+      if(ival=='file1' && req.files.file1){
+        body.driving_license_front = await UploadDocument1(req.files.file1,body.vendor)
+      }else if(ival=='file2' && req.files.file2){
         body.driving_licence_back = await UploadDocument1(req.files.file2,body.vendor);
-      }else if(req.files.file3){
+      }else if(ival=='file3' && req.files.file3){
         body.police_verify = await UploadDocument1(req.files.file3,body.vendor);
       }
+    });
 
-      delete body.file1;
+    await Promise.all(wait)
+
+    delete body.file1;
       delete body.file2; 
-      delete body.file3;   
+      delete body.file3;
+      delete body.file; 
 
       let result = await Model.addMaster(`tbl_vendor_drivers`,body)
 
@@ -2424,5 +2728,7 @@ module.exports={
     UpdateBiddingTrip,
     TripsJsons,
     AddDriverdata1,
-    Addcabs1
+    Addcabs1,
+    Addcabs,
+    ConfirmActiveTrip
   }

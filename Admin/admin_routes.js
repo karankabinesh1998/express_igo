@@ -162,6 +162,10 @@ router.route('/AddDriverdata1/:id?').post(Controller.AddDriverdata1)
 
 router.route('/Addcabs1/:id?').post(Controller.Addcabs1)
 
+router.route('/Addcabs/:id?').post(Controller.Addcabs);
+
+router.route('/ConfirmActiveTrip').post(Controller.ConfirmActiveTrip)
+
  module.exports = router;
 
  

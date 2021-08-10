@@ -2293,10 +2293,10 @@ let ActiveTrips = await Model.getAllData(
 
     await Promise.all(wait)
 
-    delete body.file1;
+      delete body.file1;
       delete body.file2; 
       delete body.file3;
-      delete body.file; 
+      delete body.file;   
 
       let result = await Model.addMaster(`tbl_vendor_drivers`,body)
 

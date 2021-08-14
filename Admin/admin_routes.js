@@ -166,6 +166,12 @@ router.route('/Addcabs/:id?').post(Controller.Addcabs);
 
 router.route('/ConfirmActiveTrip').post(Controller.ConfirmActiveTrip)
 
+router.route('/StartandEndTrip/:id?').post(Controller.StartandEndTrip)
+
+router.route('/sendOtp').post(Controller.sendOtp)
+
+router.route('/CheckOtpandPassword').post(Controller.CheckOtpandPassword)
+
  module.exports = router;
 
  

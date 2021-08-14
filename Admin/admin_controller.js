@@ -3,11 +3,205 @@ const { endConnection } = require('../dataBaseConnection');
 const chalk = require("chalk");
 // const { getAllData } = require('../Model');
 const fs = require("fs");
-const mv = require('mv');
-const moment = require('moment')
+// const mv = require('mv');
+// const moment = require('moment')
 var admin = require("firebase-admin");
 
 var serviceAccount = require("./igotaxy-firebase-adminsdk-2c5sg-2a09a1a5ee.json");
+
+const TwoFactor = new (require('2factor'))('dd227a2a-fc5c-11eb-a13b-0200cd936042')
+
+
+
+const OTPcheck = async()=>{
+  try {
+
+   
+
+    console.log(val);
+
+    // TwoFactor.sendOTP('9962181143', {otp: '256575', template: 'Please do not share to any one.'}).then((sessionId) => {
+    //   console.log(sessionId,"20")
+    // }, (error) => {
+    //   console.log(error)
+    // })
+
+   
+    
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+const sendOtp = async(req,res,next)=>{
+
+  let body = req.body;
+
+  var val = Math.floor(100000 + Math.random() * 900000);
+
+  try {
+
+    let result = await Model.getAllData(
+      `*`,
+      `tbl_user_web`,
+      `mobile = ${body.mobile} and status = 1 and userType = 3`,
+      1,
+      1
+    )
+    if(result){
+      console.log(result,"52");
+      console.log(result[0].mobile,"53");
+      TwoFactor.sendOTP(`${result[0].mobile}`, {otp: `${val}`, template: 'Please do not share to any one.'}).then(async(sessionId) => {
+      console.log(sessionId,"20")
+
+      if(sessionId){
+
+        let updateData = await Model.updateMaster(
+          `tbl_user_web`,
+          result[0].id,
+          {otp : val}
+        )
+
+        if(updateData){
+
+          res.status(200)
+          res.send([{sessionId:sessionId,otpsent : true}])
+
+        }
+
+      }
+
+      }, (error) => {
+      console.log(error)
+      })
+
+     
+
+    }else{
+
+      res.status(300)
+      res.send(false)
+
+    }
+
+    
+  } catch (error) {
+    
+    res.status(500)
+    console.log(chalk.red(error));
+    next(error)
+  }
+}
+
+const CheckOtpandPassword = async(req,res,next)=>{
+    let body = req.body;
+    console.log(body);
+  try {
+
+    let Checkotp = await Model.getAllData(
+      `*`,
+      `tbl_user_web`,
+      `otp = ${body.otp}`,
+      1,
+      1
+    )
+
+    if(Checkotp){
+
+      let updatePAssword = await Model.updateMaster(
+        `tbl_user_web`,
+        Checkotp[0].id,
+        {password:body.password}
+      )
+      if(updatePAssword){
+
+        let result = await Model.getAllData(
+          `*`,
+          `tbl_user_web`,
+          `id = ${Checkotp[0].id}`,
+          1,
+          1
+        )
+
+        if(result){
+
+          res.send([{status:true}])
+          res.status(200)
+
+        }
+
+      }
+      
+    }else{
+
+           res.send([{status:false}])
+          res.status(200)
+
+    }
+    
+  } catch (error) {
+    res.status(500)
+    console.log(chalk.red(error));
+    next(error)
+  }
+
+}
+
+// OTPcheck()
+
+var cron = require('node-cron');
+
+cron.schedule('* * * * * *', () => {
+  //console.log('running a task every minute');
+  // ChangeTripstatus() 
+});
+
+
+const ChangeTripstatus = async()=>{
+  try {
+
+    console.log("hello world");
+
+    let TripData = await Model.getAllData(
+      `*`,
+      `tbl_trips`,
+      1,
+      1,
+      1
+    )
+
+    if(TripData){
+      // console.log(TripData);
+
+      let wait = await TripData.map(async(ival,i)=>{
+
+        // console.log(new Date(ival.pickup_date));
+        // console.log(ival.pickup_date);
+
+        if(ival.trip_assigned_to != null ){
+
+          let UpdateTripStatus = await Model.updateMaster(
+            `tbl_trips`,
+            ival.id,
+            {trip_status : "triptaken"}
+          )
+
+          if(UpdateTripStatus){
+            ///
+          }
+
+        }
+
+      });
+
+      await Promise.all(wait)
+
+    }
+    
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 admin.initializeApp({
   
@@ -21,14 +215,15 @@ const CheckoutNotify = async(req,res,next)=>{
 
 
 const Token = req.params.token;
-console.log(Token);
+// console.log(Token);
 admin.messaging().send({
   token : Token,
   data:{
     customData:"Igotaxy",
     id:'1',
     ad:"Your Profile Approved",
-    subTitle:"Notify Sub"
+    subTitle:"Notify Sub",
+    routes:"DocumentUpload"
   },
   android:{
     notification:{
@@ -66,35 +261,36 @@ const SendAssignedTripNotification = async(req,res,next)=>{
 
 // const Token = req.params.token;
 // console.log(Token);
-admin.messaging().send({
-  token : body.token,
-  data:{
-    customData:"Igotaxy",
-    id:'1',
-    ad:"Your Profile Approved",
-    subTitle:"Notify Sub"
-  },
-  android:{
-    notification:{
-      body:body.body,
-      title: body.title,
-      color:"#FFF566",
-      priority:"high",
-      sound:"default",
-      vibrateTimingsMillis:[200,500,800],
-      imageUrl:"https://images.unsplash.com/photo-1556122071-e404eaedb77f?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=719&q=80"
-      // "https://images.unsplash.com/photo-1556122071-e404eaedb77f?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=719&q=80"
-    }
-  }
-}).then((msg)=>{
-  console.log(msg);
-    res.send(msg)
-    res.status(200)
-}).catch((err)=>{
-  res.send(err)
-  res.status(404)
-  console.log(err);
-})
+      admin.messaging().send({
+      token : body.token,
+      data:{
+      customData:"Igotaxy",
+      id:'1',
+      ad:"Your Profile Approved",
+      subTitle:"Notify Sub",
+      routes:"MyBiddings"
+      },
+      android:{
+      notification:{
+        body:body.body,
+        title: body.title,
+        color:"#FFF566",
+        priority:"high",
+        sound:"default",
+        vibrateTimingsMillis:[200,500,800],
+        imageUrl:"https://images.unsplash.com/photo-1556122071-e404eaedb77f?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=719&q=80"
+        // "https://images.unsplash.com/photo-1556122071-e404eaedb77f?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=719&q=80"
+      }
+      }
+      }).then((msg)=>{
+      console.log(msg);
+      res.send(msg)
+      res.status(200)
+      }).catch((err)=>{
+      res.send(err)
+      res.status(404)
+      console.log(err);
+      })
   } catch (error) {
     console.log(error);
     res.send(false)
@@ -492,6 +688,8 @@ const UpdateBiddingTrip = async(req,res,next)=>{
 const AddBidTrips = async(req,res,next)=>{
   console.log(req.body);
   let vend = req.params.vendor_id;
+
+  console.log(req.params)
     try{
 
     let addData = await Model.addMaster(`tbl_bidding_trips`,req.body)
@@ -865,6 +1063,194 @@ const AddUser = async(req,res,next) =>{
 }
 
 
+const SendNotifyToUser =async()=>{
+  try {
+
+    let UserData = await Model.getAllData(
+      `token`,
+      `tbl_user_web`,
+      `userType = 3 and status = 1 and token IS NOT NULL`,
+      1,
+      1
+    )
+
+    if(UserData){
+      console.log(UserData);
+
+      let wait = await UserData.map(async(ival,i)=>{
+        admin.messaging().send({
+          token : ival.token,
+          data:{
+            customData:"Igotaxy",
+            id:'1',
+            ad:"Your Profile Approved",
+            subTitle:"Notify Sub",
+            routes:"NewTrips"
+          },
+          android:{
+            notification:{
+              body:"New Trip has been added😊.",
+              title:"New Trip Arrived",
+              color:"#FFF566",
+              priority:"high",
+              sound:"default",
+              vibrateTimingsMillis:[200,500,800],
+              imageUrl:"https://images.unsplash.com/photo-1556122071-e404eaedb77f?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=719&q=80"
+            }
+          }
+        }).then((msg)=>{
+          console.log(msg);
+
+          if(i+1 == UserData.length){
+            return true
+          }
+            // res.send(msg)
+            // res.status(200)
+        }).catch((err)=>{
+          // res.send(err)
+          // res.status(404)
+          console.log(err);
+        })
+      })
+
+      await Promise.all(wait);
+    }
+    
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
+const StartandEndTrip =async(req,res,next) =>{
+
+  let id = req.params.id;
+
+  // let id 
+
+  console.log(req.body);
+
+  let body = req.body;
+
+  try {
+
+    let UpdateActive = await Model.updateMaster(
+      `tbl_active_trips`,
+      id,
+      body
+    )
+
+    if(UpdateActive){
+
+      let result = await Model.getAllData(
+        `start,end,trip_id,vendor_id`,
+        `tbl_active_trips`,
+        `id = ${id}`,
+        1,
+        1
+      )
+
+      console.log(result,"1014");
+
+      if(result){
+
+        
+
+        let wait = await result.map(async(ival,i)=>{
+
+          if(ival.start == 1 && ival.end == 1){
+
+            let ChangeTripStatus = await Model.updateMaster(
+              `tbl_trips`,
+                ival.trip_id,
+                {trip_status:"completed"}
+            )
+
+            let ChangeTripStatus1 = await Model.updateMaster(
+              `tbl_active_trips`,
+                ival.trip_id,
+                {status:"completed"}
+            )
+
+            if(ChangeTripStatus && ChangeTripStatus1 ){
+
+
+              if(i+1 == result.length){
+
+
+                // let result1 = await Model.getAllData(
+                //   `start,end,trip_id`,
+                //   `tbl_active_trips`,
+                //   `vendor_id = ${ival.vendor_id}`,
+                //   1,
+                //   1
+                // )
+
+                let ActiveTrips23 = await Model.getAllData(
+                  `tbl_active_trips.*,tbl_trips.trip_id as T_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
+                  tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
+                  tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
+                  
+                  `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
+                  
+                  `tbl_active_trips.vendor_id=${ival.vendor_id} and tbl_active_trips.end = 0 and tbl_active_trips.status='completed' and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
+                  DropCity.id = tbl_trips.drop_location `,
+                  1,
+                  `tbl_active_trips.id`
+                )
+        
+               
+
+                if(ActiveTrips23){
+                  res.send(ActiveTrips23)
+                  res.status(200)
+                }
+
+              }
+
+
+            }
+          
+          }else{
+
+
+            let ActiveTrips23 = await Model.getAllData(
+              `tbl_active_trips.*,tbl_trips.trip_id as T_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
+              tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
+              tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
+              
+              `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
+              
+              `tbl_active_trips.vendor_id=${ival.vendor_id} and tbl_active_trips.status='completed' and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
+              DropCity.id = tbl_trips.drop_location `,
+              1,
+              `tbl_active_trips.id`
+            )
+    
+           
+
+            if(ActiveTrips23){
+              res.send(ActiveTrips23)
+              res.status(200)
+            }
+            
+
+          }
+
+        });
+
+        await Promise.all(wait);
+
+      }
+
+    }
+    
+  } catch (error) {
+    console.log(error);
+  }
+
+}
+
 
   const AddTrips = async (req, res, next) => {
     const newcustomer = req.params.newcustomer;
@@ -886,8 +1272,17 @@ const AddUser = async(req,res,next) =>{
           let getData = await Model.getAllData(`*`,`tbl_trips`,`id=${result.insertId}`,1,1)
 
           if(getData){
-            res.send(getData)
+
+            let SendNotifyToUser1 = await SendNotifyToUser();
+
+            if(SendNotifyToUser1){
+
+              res.send(getData)
             res.status(200);
+
+            }
+
+            
           }
         }
       }else if(newcustomer==1){
@@ -927,8 +1322,8 @@ const AddUser = async(req,res,next) =>{
 
 
 
-              // res.send(getData1)
-              // res.status(200);
+              res.send(getData1)
+              res.status(200);
             }
           }
 
@@ -991,24 +1386,43 @@ const AddUser = async(req,res,next) =>{
           result[0].BiddingTrip  = JSON.stringify([]);
         }
 
-let ActiveTrips = await Model.getAllData(
-  `tbl_active_trips.*,tbl_trips.trip_id as Id_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
-  tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
-  tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
-  
-  `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
-  
-  `tbl_active_trips.vendor_id=${result[0].id} and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
-  DropCity.id = tbl_trips.drop_location `,
-  1,
-  `tbl_active_trips.id`
-)
+    let ActiveTrips = await Model.getAllData(
+    `tbl_active_trips.*,tbl_trips.trip_id as Id_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
+    tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
+    tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
 
-        if(ActiveTrips){
-          result[0].ActiveTrips = JSON.stringify(ActiveTrips)
-        }else{
-          result[0].ActiveTrips = JSON.stringify([])
-        }
+    `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
+
+    `tbl_active_trips.vendor_id=${result[0].id} and tbl_active_trips.end = 0 and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
+    DropCity.id = tbl_trips.drop_location `,
+    1,
+    `tbl_active_trips.id`
+    )
+
+    if(ActiveTrips){
+      result[0].ActiveTrips = JSON.stringify(ActiveTrips)
+    }else{
+      result[0].ActiveTrips = JSON.stringify([])
+    }
+
+    let ActiveTrips1 = await Model.getAllData(
+      `tbl_active_trips.*,tbl_trips.trip_id as Id_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
+      tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
+      tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
+      
+      `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
+      
+      `tbl_active_trips.vendor_id=${result[0].id} and tbl_active_trips.status = "completed" and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
+      DropCity.id = tbl_trips.drop_location `,
+      1,
+      `tbl_active_trips.id`
+      )
+      
+          if(ActiveTrips){
+            result[0].TripHistory = JSON.stringify(ActiveTrips1)
+          }else{
+            result[0].TripHistory = JSON.stringify([])
+          }
 
 
         let vendorDrivers = await Model.getAllData(
@@ -1164,7 +1578,7 @@ let ActiveTrips = await Model.getAllData(
           
           `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
           
-          `tbl_active_trips.vendor_id=${result[0].id} and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
+          `tbl_active_trips.vendor_id=${result[0].id} and tbl_active_trips.end = 0  and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
           DropCity.id = tbl_trips.drop_location `,
           1,
           `tbl_active_trips.id`
@@ -1175,6 +1589,25 @@ let ActiveTrips = await Model.getAllData(
         }else{
           result[0].ActiveTrips = JSON.stringify([])
         }
+
+        let ActiveTrips1 = await Model.getAllData(
+          `tbl_active_trips.*,tbl_trips.trip_id as Id_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
+          tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
+          tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
+          
+          `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
+          
+          `tbl_active_trips.vendor_id=${result[0].id} and tbl_active_trips.status = "completed" and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
+          DropCity.id = tbl_trips.drop_location `,
+          1,
+          `tbl_active_trips.id Desc`
+          )
+          
+              if(ActiveTrips){
+                result[0].TripHistory = JSON.stringify(ActiveTrips1)
+              }else{
+                result[0].TripHistory = JSON.stringify([])
+              }
 
 
 
@@ -2532,7 +2965,7 @@ try{
       let result = await Model.getAllData(
         `tbl_trips.*,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
         `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city`,
-        `tbl_user_web.id = tbl_trips.customer_id and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id `,
+        `tbl_user_web.id = tbl_trips.customer_id and tbl_trips.trip_assigned_to is null and tbl_trips.trip_status = 'active' and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id `,
         1,
         `tbl_trips.id DESC`
       );
@@ -2611,6 +3044,7 @@ try{
       );
       // let result = await NewTrips(id)
       if(result){
+        console.log(result.length); 
         res.status(200)
         res.send(result)
       }
@@ -2709,6 +3143,7 @@ module.exports={
     AddTrips,
     TripsData,
     AppLogin,
+    sendOtp,
     RefreshApp,
     APPregister,
     UserProfile,
@@ -2730,5 +3165,7 @@ module.exports={
     AddDriverdata1,
     Addcabs1,
     Addcabs,
-    ConfirmActiveTrip
+    ConfirmActiveTrip,
+    StartandEndTrip,
+    CheckOtpandPassword
   }

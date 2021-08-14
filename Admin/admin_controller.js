@@ -111,7 +111,7 @@ const CheckOtpandPassword = async(req,res,next)=>{
       let updatePAssword = await Model.updateMaster(
         `tbl_user_web`,
         Checkotp[0].id,
-        {password:body.password}
+        {password:body.password , otp:null}
       )
       if(updatePAssword){
 

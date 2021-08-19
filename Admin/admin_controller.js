@@ -51,7 +51,7 @@ const sendOtp = async(req,res,next)=>{
     if(result){
       console.log(result,"52");
       console.log(result[0].mobile,"53");
-      TwoFactor.sendOTP(`${result[0].mobile}`, {otp: `${val}`, template: 'Please do not share to any one.'}).then(async(sessionId) => {
+      TwoFactor.sendOTP(`${result[0].mobile}`, {otp: `${val}`, template: 'Igotaxy'}).then(async(sessionId) => {
       console.log(sessionId,"20")
 
       if(sessionId){
@@ -745,7 +745,7 @@ const AddUser = async(req,res,next) =>{
       const checkemail = await Model.getAllData(
         `email_id,mobile`,
         `${tableName}`,
-        `email_id = '${body.email_id}' or mobile = '${body.mobile}'`,
+        `email_id = '${body.email_id}' or mobile = '${body.mobile}' and status = 1 `,
         1,
         1
       )
@@ -1075,9 +1075,10 @@ const SendNotifyToUser =async()=>{
     )
 
     if(UserData){
-      console.log(UserData);
-
+      
       let wait = await UserData.map(async(ival,i)=>{
+        console.log(UserData.length,1080);
+
         admin.messaging().send({
           token : ival.token,
           data:{
@@ -1099,7 +1100,7 @@ const SendNotifyToUser =async()=>{
             }
           }
         }).then((msg)=>{
-          console.log(msg);
+          console.log(msg,ival);
 
           if(i+1 == UserData.length){
             return true
@@ -1109,11 +1110,17 @@ const SendNotifyToUser =async()=>{
         }).catch((err)=>{
           // res.send(err)
           // res.status(404)
+         
           console.log(err);
         })
+
+        if(i+1 == UserData.length){
+          console.log("Hello");
+          return true
+        }
       })
 
-      await Promise.all(wait);
+      await Promise(wait);
     }
     
   } catch (error) {
@@ -1275,10 +1282,10 @@ const StartandEndTrip =async(req,res,next) =>{
 
             let SendNotifyToUser1 = await SendNotifyToUser();
 
-            if(SendNotifyToUser1){
+            if(getData){
 
-              res.send(getData)
-            res.status(200);
+                res.send(getData)
+                res.status(200);
 
             }
 

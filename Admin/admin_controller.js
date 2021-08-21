@@ -1321,7 +1321,9 @@ const StartandEndTrip =async(req,res,next) =>{
 
             console.log(result1,"533");
 
-            let getData1 = await Model.getAllData(`*`,`tbl_trips`,`id=${result1.insertId}`,1,1)
+            let getData1 = await Model.getAllData(`*`,`tbl_trips`,`id=${result1.insertId}`,1,1);
+
+            let SendNotifyToUser1 = await SendNotifyToUser();
 
             if(getData1){
 
@@ -1419,7 +1421,7 @@ const StartandEndTrip =async(req,res,next) =>{
       
       `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
       
-      `tbl_active_trips.vendor_id=${result[0].id} and tbl_active_trips.status = "completed" and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
+      `tbl_active_trips.vendor_id=${result[0].id} and tbl_active_trips.end = 1 and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
       DropCity.id = tbl_trips.drop_location `,
       1,
       `tbl_active_trips.id`

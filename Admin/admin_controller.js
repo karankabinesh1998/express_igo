@@ -1513,7 +1513,7 @@ const StartandEndTrip =async(req,res,next) =>{
           
            result[0].wallethistory = JSON.stringify(arr);
 
-           console.log(result);
+          //  console.log(result);
        
             res.send(result);
             res.status(200);
@@ -3046,13 +3046,15 @@ try{
     `tbl_trips.id DESC`
     );
 
-      console.log(result,3052);
+      // console.log(result,3052);
 
       let NewResult = []
       
       let wait1  = await result.map((ival,i)=>{
          LocationLoop.map((jval,j)=>{
-             if(ival.PickState == jval.travel_location && ival.DropState == jval.travel_location ){
+           console.log(ival.PickState,jval,ival.DropState);
+             if(ival.PickState == jval && ival.DropState == jval ){
+               console.log(ival);
               NewResult.push(ival)
             }
          })

@@ -13,22 +13,19 @@ const TwoFactor = new (require('2factor'))('dd227a2a-fc5c-11eb-a13b-0200cd936042
 
 
 
+
+// console.log(wss);
+
+
 const OTPcheck = async()=>{
+  
   try {
 
    
 
     console.log(val);
 
-    // TwoFactor.sendOTP('9962181143', {otp: '256575', template: 'Please do not share to any one.'}).then((sessionId) => {
-    //   console.log(sessionId,"20")
-    // }, (error) => {
-    //   console.log(error)
-    // })
-
-   
-    
-  } catch (error) {
+} catch (error) {
     console.log(error);
   }
 }
@@ -1379,6 +1376,19 @@ const StartandEndTrip =async(req,res,next) =>{
       );
       if(result){
 
+        let StateData = await Model.getAllData(
+            `id,state as name`,
+          `tbl_state`,
+          `status=1`,
+          1,
+          1
+        )
+        if(StateData){
+          result[0].state = JSON.stringify(StateData)
+        }else{
+          result[0].state = JSON.stringify([])
+        }
+
         let BiddingTrip = await Model.getAllData(
           `*`,
           `tbl_bidding_trips`,
@@ -1550,6 +1560,19 @@ const StartandEndTrip =async(req,res,next) =>{
       )
       if(result){
         // console.log(result);
+
+        let StateData = await Model.getAllData(
+          `id,state as name`,
+          `tbl_state`,
+          `status=1`,
+          1,
+          1
+        )
+        if(StateData){
+          result[0].state = JSON.stringify(StateData)
+        }else{
+          result[0].state = JSON.stringify([])
+        }
 
         let vendorDrivers = await Model.getAllData(
           `*`,
@@ -1776,7 +1799,7 @@ const StartandEndTrip =async(req,res,next) =>{
     const body = req.body;
     // const id = req.body.id;
     let id = req.params.id;
-   console.log(body);
+     console.log(body);
     try {
       const result1 = await Model.updateMaster(
         tableName,
@@ -1797,6 +1820,19 @@ const StartandEndTrip =async(req,res,next) =>{
           // console.log(res1,"updateMasterApp");
           // res.status(200);
           // res.send(res1);
+
+            let StateData = await Model.getAllData(
+              `id,state as name`,
+            `tbl_state`,
+            `status=1`,
+            1,
+            1
+          )
+          if(StateData){
+            result[0].state = JSON.stringify(StateData)
+          }else{
+            result[0].state = JSON.stringify([])
+          }
 
           let vendorDrivers = await Model.getAllData(
             `*`,
@@ -1860,6 +1896,25 @@ const StartandEndTrip =async(req,res,next) =>{
           }else{
             result[0].BiddingTrip  = JSON.stringify([])
           }
+
+          let ActiveTrips1 = await Model.getAllData(
+            `tbl_active_trips.*,tbl_trips.trip_id as Id_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
+            tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
+            tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
+            
+            `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
+            
+            `tbl_active_trips.vendor_id=${result[0].id} and tbl_active_trips.end = 1 and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
+            DropCity.id = tbl_trips.drop_location `,
+            1,
+            `tbl_active_trips.id`
+            )
+            
+                if(ActiveTrips){
+                  result[0].TripHistory = JSON.stringify(ActiveTrips1)
+                }else{
+                  result[0].TripHistory = JSON.stringify([])
+                }
   
   
           let WalletHistory = await Model.getAllData(
@@ -2056,8 +2111,8 @@ const StartandEndTrip =async(req,res,next) =>{
       let columname = "id";
       let body = req.body;
       try {
-          console.log(body);
-          console.log(id);
+          // console.log(body);
+          // console.log(id);
 
 
 
@@ -2072,7 +2127,7 @@ const StartandEndTrip =async(req,res,next) =>{
   
       const data = await UploadImage(req.files,true,UpdateOldImage[0].profile_dp)
   
-        console.log(data,"succeess")
+        // console.log(data,"succeess")
      
          if(data !== undefined){
            body.profile_dp = data;
@@ -2087,7 +2142,7 @@ const StartandEndTrip =async(req,res,next) =>{
           columname
         );
         if (result1) {
-          console.log(result,"500");
+          // console.log(result,"500");
   
           let result = await Model.getAllData(
             `*`,
@@ -2197,7 +2252,7 @@ const StartandEndTrip =async(req,res,next) =>{
               
                result[0].wallethistory = JSON.stringify(arr);
     
-               console.log(result,1353);
+              //  console.log(result,1353);
            
                 res.send(result);
                 res.status(200);
@@ -2253,7 +2308,7 @@ const StartandEndTrip =async(req,res,next) =>{
     )
     if(UploadImageChck){
      
-      console.log(UploadImageChck,"UploadImageChck");
+      // console.log(UploadImageChck,"UploadImageChck");
     
   
      if( Files[body.driving_licence_front] == undefined  ){
@@ -2345,9 +2400,9 @@ const StartandEndTrip =async(req,res,next) =>{
   
      }
   
-     console.log(body)
-     console.log(tableName,"tableName")
-     console.log(id,"id")
+    //  console.log(body)
+    //  console.log(tableName,"tableName")
+    //  console.log(id,"id")
   
   
      const result = await Model.updateMaster(
@@ -2357,7 +2412,7 @@ const StartandEndTrip =async(req,res,next) =>{
       columname = "userid"
     );
     if (result) {
-      console.log(result);
+      // console.log(result);
        res.status(200);
         res.send(result);
     }
@@ -2379,14 +2434,14 @@ const StartandEndTrip =async(req,res,next) =>{
 
       let body = req.body;
 
-      console.log(body);
+      // console.log(body);
 
-      console.log(req.files)
+      // console.log(req.files)
 
       if( body.file1 !='' ){
         body.driving_license_front = await UploadDocument1(req.files.file1,body.vendor,true,body.d_front);
 
-        console.log(body);
+        // console.log(body);
       }else if(body.file2 !=''){
         body.driving_license_back = await UploadDocument1(req.files.file2,body.vendor,true,body.d_back);
       }else if( body.file3 !='' ){
@@ -2401,7 +2456,7 @@ const StartandEndTrip =async(req,res,next) =>{
       delete body.file2; 
       delete body.file3;  
 
-      console.log(body,"1739");
+      // console.log(body,"1739");
 
       let result = await Model.updateMaster(
         `tbl_vendor_drivers`,
@@ -2420,7 +2475,7 @@ const StartandEndTrip =async(req,res,next) =>{
           `tbl_user_web.id`
         )
         if(FetchData){
-          console.log(FetchData);
+          // console.log(FetchData);
           res.send(FetchData)
           res.status(200)
         }
@@ -2443,7 +2498,7 @@ const StartandEndTrip =async(req,res,next) =>{
 
       File = JSON.parse(File)
 
-      console.log(File)
+      // console.log(File)
 
       let wait = await File.map(async(ival,i)=>{
         
@@ -2467,13 +2522,13 @@ const StartandEndTrip =async(req,res,next) =>{
       delete body.file4;
       delete body.file;
 
-      console.log(body,"1858");
+      // console.log(body,"1858");
 
       let result = await Model.addMaster(`tbl_vendor_cabs`,body)
 
       if(result){
 
-        console.log(result,"1864");
+        // console.log(result,"1864");
 
         let FetchData = await Model.getAllData(
           `tbl_vendor_cabs.*,tbl_user_web.username`,
@@ -2483,7 +2538,7 @@ const StartandEndTrip =async(req,res,next) =>{
           `tbl_user_web.id`
         )
         if(FetchData){
-          console.log(FetchData);
+          // console.log(FetchData);
           res.send(FetchData)
           res.status(200)
         }
@@ -2505,7 +2560,7 @@ const StartandEndTrip =async(req,res,next) =>{
 
       let body = req.body;
 
-      console.log(body)
+      // console.log(body)
 
       let CustomerId = await Model.getAllData(
         `tbl_user_web.id as cusId`,
@@ -2568,9 +2623,9 @@ const StartandEndTrip =async(req,res,next) =>{
 
       let body = req.body;
 
-      console.log(body);
+      // console.log(body);
 
-      console.log(req.files)
+      // console.log(req.files)
 
       let File = req.body.file;
 
@@ -2600,13 +2655,13 @@ const StartandEndTrip =async(req,res,next) =>{
       delete body.file4;
       delete body.file;
 
-      console.log(body,"1858");
+      // console.log(body,"1858");
 
       let result = await Model.addMaster(`tbl_vendor_cabs`,body)
 
       if(result){
 
-        console.log(result,"1864");
+        // console.log(result,"1864");
 
         let FetchData = await Model.getAllData(
           `tbl_vendor_cabs.*,tbl_user_web.username`,
@@ -2616,7 +2671,7 @@ const StartandEndTrip =async(req,res,next) =>{
           `tbl_user_web.id`
         )
         if(FetchData){
-          console.log(FetchData);
+          // console.log(FetchData);
           res.send(FetchData)
           res.status(200)
         }
@@ -2636,9 +2691,9 @@ const StartandEndTrip =async(req,res,next) =>{
 
       let body = req.body;
 
-      console.log(body);
+      // console.log(body);
 
-      console.log(req.files)
+      // console.log(req.files)
 
       // if(req.files.file1){
       //   body.driving_license_front = await UploadDocument1(req.files.file1,body.vendor);
@@ -2676,13 +2731,13 @@ const StartandEndTrip =async(req,res,next) =>{
       delete body.file3;
       delete body.file;
 
-      console.log(body,"1858");
+      // console.log(body,"1858");
 
       let result = await Model.addMaster(`tbl_vendor_drivers`,body)
 
       if(result){
 
-        console.log(result,"1864");
+        // console.log(result,"1864");
 
         let FetchData = await Model.getAllData(
           `tbl_vendor_drivers.*,tbl_user_web.username`,
@@ -2692,7 +2747,7 @@ const StartandEndTrip =async(req,res,next) =>{
           `tbl_user_web.id`
         )
         if(FetchData){
-          console.log(FetchData);
+          // console.log(FetchData);
           res.send(FetchData)
           res.status(200)
         }
@@ -2712,7 +2767,7 @@ const StartandEndTrip =async(req,res,next) =>{
 
       let body = req.body;
 
-      console.log(body);
+      // console.log(body);
 
       console.log(req.files)
 
@@ -2752,7 +2807,7 @@ const StartandEndTrip =async(req,res,next) =>{
           `tbl_user_web.id`
         )
         if(FetchData){
-          console.log(FetchData);
+          // console.log(FetchData);
           res.send(FetchData)
           res.status(200)
         }
@@ -2781,7 +2836,7 @@ try{
     1
   );
 
-  console.log(check)
+  // console.log(check)
 
   if(!check.length){
    
@@ -2924,7 +2979,7 @@ try{
   
       let  uploadPath = __dirname + '/Images/'+ `${name}/` +`${body}`;
       
-      console.log(uploadPath)
+      // console.log(uploadPath)
   
       res.sendFile(uploadPath)
   
@@ -2947,7 +3002,7 @@ try{
   
       let  uploadPath = __dirname + '/Images/UserProfile/' +`${body}`;
       
-      console.log(uploadPath)
+      // console.log(uploadPath)
   
       res.sendFile(uploadPath)
   
@@ -2971,13 +3026,39 @@ try{
       
       // console.log(d);
 
-      let result = await Model.getAllData(
-        `tbl_trips.*,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
-        `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city`,
-        `tbl_user_web.id = tbl_trips.customer_id and tbl_trips.trip_assigned_to is null and tbl_trips.trip_status = 'active' and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id `,
+      let UserTripLocation = await Model.getAllData(
+        `travel_location,id`,
+        `tbl_user_web`,
+        `status = 1 and id = ${id}`,
         1,
-        `tbl_trips.id DESC`
-      );
+        1
+      )
+
+      let LocationLoop = JSON.parse(UserTripLocation[0].travel_location);
+
+      console.log(LocationLoop,"UserTripLocation");
+
+    let result = await Model.getAllData(
+    `tbl_trips.*,tbl_state.id as PickState,StateData.id as DropState,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
+    `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city,tbl_state,tbl_state as StateData`,
+    `tbl_state.id = tbl_city.state_id and StateData.id = new_city.state_id  and tbl_user_web.id = tbl_trips.customer_id and tbl_trips.trip_assigned_to is null and tbl_trips.trip_status = 'active' and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id `,
+    1,
+    `tbl_trips.id DESC`
+    );
+
+      console.log(result,3052);
+
+      let NewResult = []
+      
+      let wait1  = await result.map((ival,i)=>{
+         LocationLoop.map((jval,j)=>{
+             if(ival.PickState == jval.travel_location && ival.DropState == jval.travel_location ){
+              NewResult.push(ival)
+            }
+         })
+      })
+
+      await Promise.all(wait1)
 
 
       let tbl_bidding_trips = await Model.getAllData(
@@ -2988,7 +3069,7 @@ try{
         1
       );
 
-      let wait = result.map((ival,i)=>{
+      let wait = NewResult.map((ival,i)=>{
          tbl_bidding_trips.map((jval,j)=>{
 
              ival.bidding_amount = 'No bidding';
@@ -3007,10 +3088,10 @@ try{
 
       
 
-      if(result){
+      if(NewResult){
         console.log('====================================');
         
-        let wait = await result.map((ival,i)=>{
+        let wait = await NewResult.map((ival,i)=>{
           
           let pickDate = new Date(ival.pickup_date);
           // console.log(pickDate.getTime(),'====',new Date().getTime());
@@ -3025,7 +3106,7 @@ try{
 
         await Promise.all(wait);
 
-        console.log(finalarray);
+        // console.log(finalarray);
         return finalarray
         // console.log('====================================');
       }
@@ -3044,6 +3125,11 @@ try{
       
       // let id = req.params.id;
       // console.log(id);
+
+     
+
+     
+
       let result = await Model.getAllData(
         `tbl_trips.*,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
         `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city`,
@@ -3072,7 +3158,7 @@ const TripsJson = async(req,res,next)=>{
 
     
     let id = req.params.id;
-    console.log(id);
+    // console.log(id);
     // let result = await Model.getAllData(
     //   `tbl_trips.*,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
     //   `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city`,
@@ -3097,7 +3183,7 @@ const TripsJson = async(req,res,next)=>{
   const APPregister = async(req,res,next)=>{
     try{
   
-    console.log(req.body);
+    // console.log(req.body);
   
     
   
@@ -3107,7 +3193,7 @@ const TripsJson = async(req,res,next)=>{
     )
     if(Userlogincheck){
 
-      console.log(Userlogincheck);
+      // console.log(Userlogincheck);
 
       let Result = await Model.getAllData(
         `*`,
@@ -3118,7 +3204,7 @@ const TripsJson = async(req,res,next)=>{
 
       )
       if(Result){
-        console.log(Result);
+        // console.log(Result);
         res.send(Result)
       }
   

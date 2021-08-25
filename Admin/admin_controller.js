@@ -1550,18 +1550,19 @@ const StartandEndTrip =async(req,res,next) =>{
     
     const body = req.body;
     
-  // console.log(body);
+  console.log(body);
     try {
 
       let result = await Model.getAllData(
         `*`,
         `tbl_user_web`,
-        `email_id='${body.email_id}' and password ='${body.password}' and status = 1 and userType = 3`,
+        `email_id ='${body.email_id}' and password ='${body.password}' and status = 1 and userType = 3`,
         1,
         1
       )
-      if(result){
-        // console.log(result);
+      console.log(result);
+      if(result.length){
+       
 
         let StateData = await Model.getAllData(
           `id,state as name`,
@@ -1570,6 +1571,7 @@ const StartandEndTrip =async(req,res,next) =>{
           1,
           1
         )
+        console.log(StateData,"STATE")
         if(StateData){
           result[0].state = JSON.stringify(StateData)
         }else{
@@ -3183,8 +3185,28 @@ const TripsJson = async(req,res,next)=>{
   const APPregister = async(req,res,next)=>{
     try{
   
-    // console.log(req.body);
-  
+    console.log(req.body);
+    let body = req.body;
+
+    body.travel_location = JSON.stringify([54])
+      
+    let checkExistUser = await Model.getAllData(
+      `*`,
+      `tbl_user_web`,
+      `email_id='${body.email_id}' or mobile='${body.mobile}'`,
+      1,
+      1
+    )
+
+    console.log(checkExistUser,"USEr");
+
+    if(checkExistUser.length){
+
+      res.status(303)
+      res.send(false)
+      res.end('User Already Exists')
+
+    }else{
     
   
     let Userlogincheck =  await Model.addMaster(
@@ -3192,8 +3214,6 @@ const TripsJson = async(req,res,next)=>{
       req.body
     )
     if(Userlogincheck){
-
-      // console.log(Userlogincheck);
 
       let Result = await Model.getAllData(
         `*`,
@@ -3204,12 +3224,15 @@ const TripsJson = async(req,res,next)=>{
 
       )
       if(Result){
-        // console.log(Result);
+        console.log(Result);
+        res.status(200)
         res.send(Result)
       }
   
      
     }
+
+  }
   
     } catch (error) {
       //db end connection

@@ -1506,7 +1506,7 @@ const StartandEndTrip =async(req,res,next) =>{
 
           let wait = await   WalletHistory.map((ival,i)=>{
             
-            arr.push([i+1 , ival.amount , ival.debited_credited ,ival.created_At])
+            arr.push([i+1 , ival.amount , ival.debited_credited,ival.reason,ival.created_At])
 
           })
 
@@ -2245,7 +2245,7 @@ const StartandEndTrip =async(req,res,next) =>{
     
               let wait = await   WalletHistory.map((ival,i)=>{
                 
-                arr.push([i+1 , ival.amount , ival.debited_credited ,ival.created_At])
+                arr.push([i+1 , ival.amount , ival.debited_credited,ival.reason,ival.created_At])
     
               })
     
@@ -3130,11 +3130,7 @@ try{
       // let id = req.params.id;
       // console.log(id);
 
-     
-
-     
-
-      let result = await Model.getAllData(
+     let result = await Model.getAllData(
         `tbl_trips.*,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
         `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city`,
         `tbl_trips.trip_status = 'active' and tbl_user_web.id = tbl_trips.customer_id and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id `,

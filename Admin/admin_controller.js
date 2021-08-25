@@ -1003,7 +1003,7 @@ const AddUser = async(req,res,next) =>{
         `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city`,
         `tbl_user_web.id = tbl_trips.customer_id and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id`,
         1,
-        1
+        `tbl_trips.id DESC`
       );
 
           if(result){
@@ -1154,7 +1154,7 @@ const StartandEndTrip =async(req,res,next) =>{
         1
       )
 
-      console.log(result,"1014");
+      // console.log(result,"1014");
 
       if(result){
 
@@ -1162,7 +1162,7 @@ const StartandEndTrip =async(req,res,next) =>{
 
         let wait = await result.map(async(ival,i)=>{
 
-          if(ival.start == 1 && ival.end == 1){
+          if(ival.end == 1){
 
             let ChangeTripStatus = await Model.updateMaster(
               `tbl_trips`,
@@ -1175,6 +1175,8 @@ const StartandEndTrip =async(req,res,next) =>{
                 ival.trip_id,
                 {status:"completed"}
             )
+
+                console.log(ChangeTripStatus,"ChangeTripStatus");
 
             if(ChangeTripStatus && ChangeTripStatus1 ){
 
@@ -1218,14 +1220,14 @@ const StartandEndTrip =async(req,res,next) =>{
           }else{
 
 
-            let ActiveTrips23 = await Model.getAllData(
+            let ActiveTripsNew = await Model.getAllData(
               `tbl_active_trips.*,tbl_trips.trip_id as T_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
               tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
               tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
               
               `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
               
-              `tbl_active_trips.vendor_id=${ival.vendor_id} and tbl_active_trips.status='completed' and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
+              `tbl_active_trips.vendor_id=${ival.vendor_id} and tbl_active_trips.status='pending' and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
               DropCity.id = tbl_trips.drop_location `,
               1,
               `tbl_active_trips.id`
@@ -1233,8 +1235,8 @@ const StartandEndTrip =async(req,res,next) =>{
     
            
 
-            if(ActiveTrips23){
-              res.send(ActiveTrips23)
+            if(ActiveTripsNew){
+              res.send(ActiveTripsNew)
               res.status(200)
             }
             
@@ -3054,7 +3056,7 @@ try{
          LocationLoop.map((jval,j)=>{
            console.log(ival.PickState,jval,ival.DropState);
              if(ival.PickState == jval && ival.DropState == jval ){
-               console.log(ival);
+              //  console.log(ival);
               NewResult.push(ival)
             }
          })
@@ -3135,7 +3137,7 @@ try{
       let result = await Model.getAllData(
         `tbl_trips.*,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
         `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city`,
-        `tbl_user_web.id = tbl_trips.customer_id and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id `,
+        `tbl_trips.trip_status = 'active' and tbl_user_web.id = tbl_trips.customer_id and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id `,
         1,
         `tbl_trips.id DESC`
       );

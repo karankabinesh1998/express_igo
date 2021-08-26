@@ -172,6 +172,8 @@ router.route('/sendOtp').post(Controller.sendOtp)
 
 router.route('/CheckOtpandPassword').post(Controller.CheckOtpandPassword)
 
+router.route('/VendorUserLogout/:id').post(Controller.VendorUserLogout)  
+
  module.exports = router;
 
  

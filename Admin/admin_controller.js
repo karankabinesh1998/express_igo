@@ -1261,7 +1261,7 @@ const StartandEndTrip =async(req,res,next) =>{
   const AddTrips = async (req, res, next) => {
     const newcustomer = req.params.newcustomer;
     let body = req.body;
-  console.log(body);
+    console.log(body);
   
     try {
 
@@ -1549,6 +1549,8 @@ const StartandEndTrip =async(req,res,next) =>{
   const AppLogin = async (req, res, next) => {
     
     const body = req.body;
+
+    // login_token
     
   console.log(body);
     try {
@@ -1562,6 +1564,19 @@ const StartandEndTrip =async(req,res,next) =>{
       )
       console.log(result);
       if(result.length){
+
+        let login_token = await randomString(10, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+
+        let UpdateToken = await Model.updateMaster(
+          `tbl_user_web`,
+          result[0].id,
+          {login_token : login_token , login_status : 1 },
+          "id"
+        )
+
+        if(UpdateToken){
+          result[0].login_token = login_token
+        }
        
 
         let StateData = await Model.getAllData(
@@ -3040,7 +3055,7 @@ try{
 
       let LocationLoop = JSON.parse(UserTripLocation[0].travel_location);
 
-      console.log(LocationLoop,"UserTripLocation");
+      // console.log(LocationLoop,"UserTripLocation");
 
     let result = await Model.getAllData(
     `tbl_trips.*,tbl_state.id as PickState,StateData.id as DropState,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
@@ -3056,7 +3071,7 @@ try{
       
       let wait1  = await result.map((ival,i)=>{
          LocationLoop.map((jval,j)=>{
-           console.log(ival.PickState,jval,ival.DropState);
+          //  console.log(ival.PickState,jval,ival.DropState);
              if(ival.PickState == jval && ival.DropState == jval ){
               //  console.log(ival);
               NewResult.push(ival)
@@ -3095,7 +3110,7 @@ try{
       
 
       if(NewResult){
-        console.log('====================================');
+        // console.log('====================================');
         
         let wait = await NewResult.map((ival,i)=>{
           
@@ -3244,6 +3259,39 @@ const TripsJson = async(req,res,next)=>{
     
     }
 
+
+    const VendorUserLogout = async(req,res,next)=>{
+      let body = req.body;
+      let id = req.params.id;
+      body.login_status = 0
+      try{
+        console.log("HELLO");  
+        console.log(body);
+
+        let result = await Model.updateMaster(
+          `tbl_user_web`,
+          id,
+          body
+        )
+
+        if(result){
+          res.send(true)
+          res.status(200)
+        }else{
+          res.status(500)
+          res.send(false)
+        }
+
+      }catch (error) {
+      //db end connection
+      endConnection();
+      console.error(chalk.red(error));
+      res.status(500);
+      next(error);
+    }
+    }
+
+
 module.exports={
     LoginAdmin,
     DownloadImage,
@@ -3285,5 +3333,6 @@ module.exports={
     Addcabs,
     ConfirmActiveTrip,
     StartandEndTrip,
-    CheckOtpandPassword
+    CheckOtpandPassword,
+    VendorUserLogout
   }

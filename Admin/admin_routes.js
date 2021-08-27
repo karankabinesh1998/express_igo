@@ -174,6 +174,8 @@ router.route('/CheckOtpandPassword').post(Controller.CheckOtpandPassword)
 
 router.route('/VendorUserLogout/:id').post(Controller.VendorUserLogout)  
 
+router.route('/CancelTrip/:id?').post(Controller.CancelTrip)  
+
  module.exports = router;
 
  

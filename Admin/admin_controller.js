@@ -572,7 +572,7 @@ const Check_Db = async(req,res,next)=>{
 const addMaster = async (req, res, next) => {
   const tableName = req.params.tableName;
   const body = req.body; 
- console.log(body)
+   console.log(body)
   try {
 
     const GetUserDeatils = await Model.getAllData(
@@ -593,10 +593,12 @@ const addMaster = async (req, res, next) => {
     if(debited_credited=="credited"){
         
       wallet = parseInt(wallet) + parseInt(body.amount)
+      body.reason = 'recharge'
 
     }else{
 
       wallet = parseInt(wallet) - parseInt(body.amount)
+      body.reason = 'penalty / wrong payment'
 
     }
 
@@ -1060,62 +1062,86 @@ const AddUser = async(req,res,next) =>{
 }
 
 
-const SendNotifyToUser =async()=>{
+
+
+const SendNotifyToUser =async(pickup_location,drop_location)=>{
+  console.log(pickup_location,drop_location);
   try {
 
     let UserData = await Model.getAllData(
-      `token`,
+      `token,travel_location`,
       `tbl_user_web`,
       `userType = 3 and status = 1 and token IS NOT NULL`,
       1,
       1
+    );
+
+    let locationCheck = await Model.getAllData(
+      `tbl_city.state_id as pick_state,DropCity.state_id as drop_state`,
+      `tbl_city,tbl_city as DropCity`,
+      `tbl_city.id = ${pickup_location} and DropCity.id =${drop_location}`,
+      1,
+      1
     )
 
-    if(UserData){
+    console.log(locationCheck,1085);
+
+    if(UserData && locationCheck.length ){
+
+      console.log(UserData,1089);
       
       let wait = await UserData.map(async(ival,i)=>{
-        console.log(UserData.length,1080);
 
-        admin.messaging().send({
-          token : ival.token,
-          data:{
-            customData:"Igotaxy",
-            id:'1',
-            ad:"Your Profile Approved",
-            subTitle:"Notify Sub",
-            routes:"NewTrips"
-          },
-          android:{
-            notification:{
-              body:"New Trip has been added😊.",
-              title:"New Trip Arrived",
-              color:"#FFF566",
-              priority:"high",
-              sound:"default",
-              vibrateTimingsMillis:[200,500,800],
-              imageUrl:"https://images.unsplash.com/photo-1556122071-e404eaedb77f?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=719&q=80"
-            }
-          }
-        }).then((msg)=>{
-          console.log(msg,ival);
-
-          if(i+1 == UserData.length){
-            return true
-          }
-            // res.send(msg)
-            // res.status(200)
-        }).catch((err)=>{
-          // res.send(err)
-          // res.status(404)
+         let LocationData = ival.travel_location !== null ? JSON.parse(ival.travel_location) : []
          
-          console.log(err);
-        })
+            if(LocationData.length){
 
-        if(i+1 == UserData.length){
-          console.log("Hello");
-          return true
-        }
-      })
+              LocationData.map((jval,j)=>{
+
+                console.log(jval,locationCheck[0].pick_state , "CHECKING");
+                
+                if(jval== locationCheck[0].pick_state &&  jval == locationCheck[0].drop_state ){
+
+
+                  admin.messaging().send({
+                    token : ival.token,
+                    data:{
+                      customData:"Igotaxy",
+                      id:'1',
+                      ad:"Your Profile Approved",
+                      subTitle:"Notify Sub",
+                      routes:"NewTrips"
+                    },
+                    android:{
+                      notification:{
+                        body:"New Trip has been added😊.",
+                        title:"New Trip Arrived",
+                        color:"#FFF566",
+                        priority:"high",
+                        sound:"default",
+                        vibrateTimingsMillis:[200,500,800],
+                        imageUrl:"https://images.unsplash.com/photo-1556122071-e404eaedb77f?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=719&q=80"
+                      }
+                    }
+                  }).then((msg)=>{
+                  
+                    if(i+1 == UserData.length){
+                      return true
+                    }
+                  }).catch((err)=>{
+                     console.log(err);
+                  })
+
+                   if(i+1 == UserData.length){
+                    console.log("Hello");
+                    return true
+                  }
+               }
+
+              })
+            
+            }
+         })
 
       await Promise(wait);
     }
@@ -1126,13 +1152,20 @@ const SendNotifyToUser =async()=>{
 }
 
 
+
+
+
+
+
+// SendNotifyToUser(1024,1029)
+
 const StartandEndTrip =async(req,res,next) =>{
 
   let id = req.params.id;
 
   // let id 
 
-  console.log(req.body);
+  console.log(req.body , id ,"1166");
 
   let body = req.body;
 
@@ -1154,7 +1187,7 @@ const StartandEndTrip =async(req,res,next) =>{
         1
       )
 
-      // console.log(result,"1014");
+      console.log(result,"1188");
 
       if(result){
 
@@ -1169,6 +1202,7 @@ const StartandEndTrip =async(req,res,next) =>{
                 ival.trip_id,
                 {trip_status:"completed"}
             )
+            console.log(ChangeTripStatus,"1203");
 
             let ChangeTripStatus1 = await Model.updateMaster(
               `tbl_active_trips`,
@@ -1176,7 +1210,7 @@ const StartandEndTrip =async(req,res,next) =>{
                 {status:"completed"}
             )
 
-                console.log(ChangeTripStatus,"ChangeTripStatus");
+                console.log(ChangeTripStatus1,"ChangeTripStatus");
 
             if(ChangeTripStatus && ChangeTripStatus1 ){
 
@@ -1227,7 +1261,7 @@ const StartandEndTrip =async(req,res,next) =>{
               
               `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
               
-              `tbl_active_trips.vendor_id=${ival.vendor_id} and tbl_active_trips.status='pending' and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
+              `tbl_active_trips.vendor_id=${ival.vendor_id} and tbl_active_trips.start = 1 or tbl_active_trips.start = 0 and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
               DropCity.id = tbl_trips.drop_location `,
               1,
               `tbl_active_trips.id`
@@ -1266,6 +1300,7 @@ const StartandEndTrip =async(req,res,next) =>{
     try {
 
       if(newcustomer==0){
+
         body.trip_id = await randomString(10, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
         
         const result = await Model.addMaster(`tbl_trips`, body );
@@ -1279,7 +1314,7 @@ const StartandEndTrip =async(req,res,next) =>{
 
           if(getData){
 
-            let SendNotifyToUser1 = await SendNotifyToUser();
+            let SendNotifyToUser1 = await SendNotifyToUser(body.pickup_location,body.drop_location);
 
             if(getData){
 
@@ -1322,7 +1357,7 @@ const StartandEndTrip =async(req,res,next) =>{
 
             let getData1 = await Model.getAllData(`*`,`tbl_trips`,`id=${result1.insertId}`,1,1);
 
-            let SendNotifyToUser1 = await SendNotifyToUser();
+            let SendNotifyToUser1 = await SendNotifyToUser(body.pickup_location,body.drop_location);
 
             if(getData1){
 
@@ -3260,6 +3295,131 @@ const TripsJson = async(req,res,next)=>{
     }
 
 
+    const CancelTrip = async(req,res,next)=>{
+      
+      let id = req.params.id;
+      let body = req.body;
+      console.log(body , id);
+
+
+       try{
+
+          //  let tbl_bidding_trips = await Model.getAllData(
+          //    `*`,
+          //    `tbl_bidding_trips`,
+          //    `trip_id = ${body.trip_id}`,
+          //    1,
+          //    1
+          //    )
+         let tbl_bidding_trips = await Model.updateMaster(
+           `tbl_bidding_trips`,
+           body.bid_id,
+           { status : 'waiting' },
+           "id"
+         )  
+         if(tbl_bidding_trips){
+
+          let tbl_trips = await Model.updateMaster(
+            `tbl_trips`,
+            body.trip_id,
+            { trip_status : 'active' , trip_assigned_to : null },
+            "id"
+          )
+
+          if(tbl_trips){
+
+            console.log(tbl_bidding_trips,"3331")
+
+            console.log(tbl_trips)
+            
+            let tbl_user_web = await Model.getAllData(
+              `*`,
+              `tbl_user_web`,
+              `id = ${id}`,
+              1,
+              1
+            )
+
+            if(tbl_user_web.length){
+
+              let wallet = parseInt( tbl_user_web[0].wallet ); 
+
+              let trip_amount = parseInt(body.trip_amount);
+
+              let vendor_req_amount = parseInt(body.vendor_req_amount)
+
+              let penalty = ( trip_amount - vendor_req_amount ) * 0.5;
+
+
+              let Newwalletamount = wallet + penalty ;
+
+
+              let tbl_trips = await Model.updateMaster(
+                `tbl_trips`,
+                body.trip_id,
+                { trip_status : 'active' , trip_assigned_to : null },
+                "id"
+              )
+
+              let User_Wallet = await Model.updateMaster(
+                `tbl_user_web`,
+                id,
+                { wallet : Newwalletamount  },
+                "id"
+              )
+
+              let arr = {}
+              arr.amount = penalty;
+              arr.debited_credited = 'credited'
+              arr.reason = 'trip cancelled'
+              arr.user_id = id
+
+              let Wallet_History = await Model.addMaster(`tbl_wallet_master_history`,arr)
+
+              if(Wallet_History){
+
+                // KARAN karan
+
+                let ActiveTrips = await Model.getAllData(
+                  `*`,
+                  `tbl_bidding_trips`,
+                  `vendor_id=${body.vendor_id}`,
+                  1,
+                  `id`
+                )
+                if(ActiveTrips){
+    
+                  res.send(ActiveTrips)
+                  res.status(200)
+    
+                }else{
+                  res.send(false)
+                  res.status(400)
+                }
+
+              }
+
+
+            }
+            
+
+          }
+
+            
+
+         }
+
+
+       } catch (error) {
+      //db end connection
+      endConnection();
+      console.error(chalk.red(error));
+      res.status(500);
+      next(error);
+    }
+    }
+
+
     const VendorUserLogout = async(req,res,next)=>{
       let body = req.body;
       let id = req.params.id;
@@ -3318,6 +3478,7 @@ module.exports={
     UpdateUser,
     UploadUserProfile,
     addMaster,
+    CancelTrip,
     AppDocumentUpload,
     AddBidTrips,
     CheckoutNotify,

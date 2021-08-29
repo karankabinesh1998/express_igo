@@ -28,8 +28,11 @@ const OTPchecksadfsf = async(req,res,next)=>{
 
     console.log(result);
 
-    res.send(result)
+    if(result){
+	res.send(result)
     res.status(200)
+		
+	}
 
 } catch (error) {
   res.status(500)
@@ -717,6 +720,7 @@ const AddBidTrips = async(req,res,next)=>{
       // )
 
       let result = await NewTrips(vend);
+		
 
       if(result.length){
 
@@ -1264,7 +1268,7 @@ const StartandEndTrip =async(req,res,next) =>{
 
             }
           
-          }else{
+          }else if(ival.start==1){
 
 
            if(i+1 == result.length){
@@ -3141,7 +3145,7 @@ try{
 
       let LocationLoop = JSON.parse(UserTripLocation[0].travel_location);
 
-      // console.log(LocationLoop,"UserTripLocation");
+      console.log(LocationLoop,"UserTripLocation");
 
     let result = await Model.getAllData(
     `tbl_trips.*,tbl_state.id as PickState,StateData.id as DropState,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
@@ -3151,7 +3155,7 @@ try{
     `tbl_trips.id DESC`
     );
 
-      // console.log(result,3052);
+     
 
       let NewResult = []
       
@@ -3169,6 +3173,7 @@ try{
 
       await Promise.all(wait1)
 
+		
 
       let tbl_bidding_trips = await Model.getAllData(
         `*`,
@@ -3200,9 +3205,9 @@ try{
 
       await Promise.all(wait)
 
-      // console.log(NewArray,"3150");
+       console.log(NewResult,"3150");
  
-      if(NewArray.length){ 
+      if(NewResult){ 
         // console.log('====================================');
         
         let wait = await NewResult.map((ival,i)=>{

@@ -176,6 +176,8 @@ router.route('/VendorUserLogout/:id').post(Controller.VendorUserLogout)
 
 router.route('/CancelTrip/:id?').post(Controller.CancelTrip)  
 
+router.route('/OTPchecksadfsf').get(Controller.OTPchecksadfsf)  
+
  module.exports = router;
 
  

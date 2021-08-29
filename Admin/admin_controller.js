@@ -17,16 +17,24 @@ const TwoFactor = new (require('2factor'))('dd227a2a-fc5c-11eb-a13b-0200cd936042
 // console.log(wss);
 
 
-const OTPcheck = async()=>{
+const OTPchecksadfsf = async(req,res,next)=>{
   
   try {
 
+    let result = await NewTrips(5)
+
+
    
 
-    console.log(val);
+    console.log(result);
+
+    res.send(result)
+    res.status(200)
 
 } catch (error) {
-    console.log(error);
+  res.status(500)
+  console.log(chalk.red(error));
+  next(error)
   }
 }
 
@@ -1784,7 +1792,7 @@ const StartandEndTrip =async(req,res,next) =>{
 
           let wait = await WalletHistory.map((ival,i)=>{
             
-            arr.push([i+1 , ival.amount , ival.debited_credited ,ival.created_At])
+            arr.push([i+1 , ival.amount , ival.debited_credited,ival.reason,ival.created_At])
 
           })
 
@@ -3122,7 +3130,7 @@ try{
       // let d = moment(new Date()).format('MM-DD-YYYY HH:MM:SS');
       
       // console.log(d);
-
+  
       let UserTripLocation = await Model.getAllData(
         `travel_location,id`,
         `tbl_user_web`,
@@ -3177,12 +3185,13 @@ try{
 
             
 
-             if(ival.id == jval.trip_id && ival.trip_id == jval.trip_id_1 && jval.vendor_id == id ){
+             if(ival.id == jval.trip_id && jval.vendor_id == id ){
              
                ival.bidding_amount = jval.req_amount;
                ival.tbl_bidding_id = jval.id;
 
                NewArray.push(ival)
+
              }
           
 
@@ -3553,5 +3562,6 @@ module.exports={
     ConfirmActiveTrip,
     StartandEndTrip,
     CheckOtpandPassword,
-    VendorUserLogout
+    VendorUserLogout,
+    OTPchecksadfsf
   }

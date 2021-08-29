@@ -571,6 +571,7 @@ const Check_Db = async(req,res,next)=>{
 
 const addMaster = async (req, res, next) => {
   const tableName = req.params.tableName;
+  const id = req.params.id;
   const body = req.body; 
    console.log(body)
   try {
@@ -590,6 +591,8 @@ const addMaster = async (req, res, next) => {
 
     console.log(wallet,"wallet");
 
+    if(id == null){
+
     if(debited_credited=="credited"){
         
       wallet = parseInt(wallet) + parseInt(body.amount)
@@ -599,6 +602,8 @@ const addMaster = async (req, res, next) => {
 
       wallet = parseInt(wallet) - parseInt(body.amount)
       body.reason = 'penalty / wrong payment'
+
+    }
 
     }
 
@@ -1254,6 +1259,8 @@ const StartandEndTrip =async(req,res,next) =>{
           }else{
 
 
+           if(i+1 == result.length){
+
             let ActiveTripsNew = await Model.getAllData(
               `tbl_active_trips.*,tbl_trips.trip_id as T_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
               tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
@@ -1273,6 +1280,8 @@ const StartandEndTrip =async(req,res,next) =>{
               res.send(ActiveTripsNew)
               res.status(200)
             }
+
+           }
             
 
           }
@@ -1437,7 +1446,15 @@ const StartandEndTrip =async(req,res,next) =>{
 
 
         if(BiddingTrip){
-          result[0].BiddingTrip  = JSON.stringify(BiddingTrip);
+
+          let dddd =  []
+          let waittt1=await  BiddingTrip.map((ival,i)=>{
+               ival.activeindicator = false
+               ival.activeindicator1 = false;
+               dddd.push(ival)
+             })
+             await Promise.all(waittt1)
+          result[0].BiddingTrip  = JSON.stringify(dddd);
         }else{
           result[0].BiddingTrip  = JSON.stringify([]);
         }
@@ -1456,7 +1473,15 @@ const StartandEndTrip =async(req,res,next) =>{
     )
 
     if(ActiveTrips){
-      result[0].ActiveTrips = JSON.stringify(ActiveTrips)
+      let ddd =  []
+       let waittt=await  ActiveTrips.map((ival,i)=>{
+            ival.activeindicator = false
+            ival.activeindicator1 = false;
+            ddd.push(ival)
+          })
+          await Promise.all(waittt)
+          console.log(ddd);
+          result[0].ActiveTrips = JSON.stringify(ddd)
     }else{
       result[0].ActiveTrips = JSON.stringify([])
     }
@@ -1671,7 +1696,13 @@ const StartandEndTrip =async(req,res,next) =>{
         )
 
         if(ActiveTrips){
-          result[0].ActiveTrips = JSON.stringify(ActiveTrips)
+          let ddd =  []
+          ActiveTrips.map((ival,i)=>{
+            ival.activeindicator = false
+            ival.activeindicator1 = false;
+            ddd.push(ival)
+          })
+          result[0].ActiveTrips = JSON.stringify(ddd)
         }else{
           result[0].ActiveTrips = JSON.stringify([])
         }
@@ -1732,7 +1763,15 @@ const StartandEndTrip =async(req,res,next) =>{
         )
 
         if(BiddingTrip){
-          result[0].BiddingTrip  = JSON.stringify(BiddingTrip)
+          let dddd =  []
+          let waittt1=await  BiddingTrip.map((ival,i)=>{
+               ival.activeindicator = false;
+               ival.activeindicator1 = false;
+               dddd.push(ival)
+             })
+             await Promise.all(waittt1)
+          result[0].BiddingTrip  = JSON.stringify(dddd);
+          // result[0].BiddingTrip  = JSON.stringify(BiddingTrip)
         }else{
           result[0].BiddingTrip  = JSON.stringify([])
         }
@@ -2745,34 +2784,31 @@ const StartandEndTrip =async(req,res,next) =>{
 
       let body = req.body;
 
-      // console.log(body);
-
-      // console.log(req.files)
-
-      // if(req.files.file1){
-      //   body.driving_license_front = await UploadDocument1(req.files.file1,body.vendor);
-
-      //   console.log(body);
-      // }else if(req.files.file2){
-      //   body.driving_licence_back = await UploadDocument1(req.files.file2,body.vendor);
-      // }else if(req.files.file3){
-      //   body.police_verify = await UploadDocument1(req.files.file3,body.vendor);
-      // }
-
       
+      let checkDriver = await Model.getAllData(
+        `*`,
+        `tbl_vendor_drivers`,
+        `driver_mobile = '${body.driver_mobile}' or driving_license_number = '${body.driving_license_number}'`,
+        1,
+        1
+      )
+
+      console.log(body,"2757");
+      
+      if(checkDriver.length==0){
 
       let File = req.body.file;
 
       File = JSON.parse(File)
 
-    // console.log(File)
+      console.log(req.files)
 
     let wait = await File.map(async(ival,i)=>{
       
       if(ival=='file1' && req.files.file1){
         body.driving_license_front = await UploadDocument1(req.files.file1,body.vendor)
       }else if(ival=='file2' && req.files.file2){
-        body.driving_licence_back = await UploadDocument1(req.files.file2,body.vendor);
+        body.driving_license_back = await UploadDocument1(req.files.file2,body.vendor);
       }else if(ival=='file3' && req.files.file3){
         body.police_verify = await UploadDocument1(req.files.file3,body.vendor);
       }
@@ -2780,7 +2816,7 @@ const StartandEndTrip =async(req,res,next) =>{
 
     await Promise.all(wait)
 
-    delete body.file1;
+      delete body.file1;
       delete body.file2; 
       delete body.file3;
       delete body.file;
@@ -2807,6 +2843,13 @@ const StartandEndTrip =async(req,res,next) =>{
         }
 
       }
+
+    }else{
+
+      res.send(false)
+          res.status(400)
+
+    }
       
     } catch (error) {
       endConnection();
@@ -3109,6 +3152,8 @@ try{
           //  console.log(ival.PickState,jval,ival.DropState);
              if(ival.PickState == jval && ival.DropState == jval ){
               //  console.log(ival);
+              ival.bidding_amount = 'No bidding';
+              ival.tbl_bidding_id = null;
               NewResult.push(ival)
             }
          })
@@ -3120,20 +3165,24 @@ try{
       let tbl_bidding_trips = await Model.getAllData(
         `*`,
         `tbl_bidding_trips`,
-        `vendor_id = ${id}`,
+        `vendor_id = ${id} and status='waiting'`,
         1,
         1
       );
 
+      let NewArray = [] ;
+
       let wait = NewResult.map((ival,i)=>{
          tbl_bidding_trips.map((jval,j)=>{
 
-             ival.bidding_amount = 'No bidding';
-             ival.tbl_bidding_id = null
+            
 
-             if(ival.id == jval.trip_id && jval.vendor_id == id ){
+             if(ival.id == jval.trip_id && ival.trip_id == jval.trip_id_1 && jval.vendor_id == id ){
+             
                ival.bidding_amount = jval.req_amount;
                ival.tbl_bidding_id = jval.id;
+
+               NewArray.push(ival)
              }
           
 
@@ -3142,9 +3191,9 @@ try{
 
       await Promise.all(wait)
 
-      
-
-      if(NewResult){
+      // console.log(NewArray,"3150");
+ 
+      if(NewArray.length){ 
         // console.log('====================================');
         
         let wait = await NewResult.map((ival,i)=>{
@@ -3153,16 +3202,20 @@ try{
           // console.log(pickDate.getTime(),'====',new Date().getTime());
 
           if(pickDate.getTime() > new Date().getTime() ){
+            if(ival.trip_id=='88DIFWJ2VJ'){
+              // console.log(ival,"654654")
+            }
             finalarray.push(ival)
           }
 
-          //console.log(ival.pickup_date);
+          //console.log(ival.pickup_date); 
 
         })
 
-        await Promise.all(wait);
 
-        // console.log(finalarray);
+
+        await Promise.all(wait);
+       
         return finalarray
         // console.log('====================================');
       }
@@ -3330,7 +3383,7 @@ const TripsJson = async(req,res,next)=>{
 
             console.log(tbl_bidding_trips,"3331")
 
-            console.log(tbl_trips)
+            console.log(tbl_trips,"3333")
             
             let tbl_user_web = await Model.getAllData(
               `*`,
@@ -3339,7 +3392,7 @@ const TripsJson = async(req,res,next)=>{
               1,
               1
             )
-
+              console.log(tbl_user_web,"3342");
             if(tbl_user_web.length){
 
               let wallet = parseInt( tbl_user_web[0].wallet ); 
@@ -3354,12 +3407,14 @@ const TripsJson = async(req,res,next)=>{
               let Newwalletamount = wallet + penalty ;
 
 
-              let tbl_trips = await Model.updateMaster(
+              let tbl_trips1 = await Model.updateMaster(
                 `tbl_trips`,
                 body.trip_id,
                 { trip_status : 'active' , trip_assigned_to : null },
                 "id"
               )
+
+              console.log(tbl_trips1,"3364");
 
               let User_Wallet = await Model.updateMaster(
                 `tbl_user_web`,
@@ -3368,25 +3423,28 @@ const TripsJson = async(req,res,next)=>{
                 "id"
               )
 
+              console.log(User_Wallet,"3373")
+
               let arr = {}
               arr.amount = penalty;
               arr.debited_credited = 'credited'
               arr.reason = 'trip cancelled'
-              arr.user_id = id
+              arr.user_id = id;
 
               let Wallet_History = await Model.addMaster(`tbl_wallet_master_history`,arr)
-
+              console.log(Wallet_History,"3382")
               if(Wallet_History){
 
                 // KARAN karan
-
+                console.log(id,"3394");
                 let ActiveTrips = await Model.getAllData(
                   `*`,
                   `tbl_bidding_trips`,
-                  `vendor_id=${body.vendor_id}`,
+                  `vendor_id=${id}`,
                   1,
-                  `id`
+                  `id DESC`
                 )
+                console.log(id,ActiveTrips,"3394");
                 if(ActiveTrips){
     
                   res.send(ActiveTrips)

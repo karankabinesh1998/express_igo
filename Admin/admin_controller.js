@@ -2859,9 +2859,7 @@ const StartandEndTrip =async(req,res,next) =>{
 
       // console.log(req.files)
 
-      let File = req.body.file;
-
-        File = JSON.parse(File)
+      let File = ["file1","file2","file3","file4"]
 
       // console.log(File)
 

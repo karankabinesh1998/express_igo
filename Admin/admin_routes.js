@@ -160,6 +160,10 @@ router.route('/AddDriverdata/:id?').post(Controller.AddDriverdata).put(Controlle
 
 router.route('/AddDriverdata1/:id?').post(Controller.AddDriverdata1).put(Controller.EditDriverdata)
 
+
+router.route('/EditCabdata/:id?').put(Controller.EditCabdata)
+
+
 router.route('/Addcabs1/:id?').post(Controller.Addcabs1)
 
 router.route('/Addcabs/:id?').post(Controller.Addcabs);
@@ -178,7 +182,9 @@ router.route('/CancelTrip/:id?').post(Controller.CancelTrip)
 
 router.route('/OTPchecksadfsf').get(Controller.OTPchecksadfsf)  
 
-router.route('/DeleteDriver/:id').get(Controller.DeleteDriver) 
+router.route('/DeleteDriver/:id').get(Controller.DeleteDriver)
+
+router.route('/DeleteCab/:id').get(Controller.DeleteCab) 
 
 
  module.exports = router;

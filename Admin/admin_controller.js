@@ -2529,6 +2529,107 @@ const StartandEndTrip =async(req,res,next) =>{
   }
 
 
+  const EditCabdata = async(req,res,next)=>{
+    try {
+
+      let body = req.body;
+
+      console.log(body,"body"); 
+
+      console.log(req.files,"4654564")
+
+      let File = ["file1","file2","file3","file4"]
+
+      // console.log(req.files)
+
+    let wait = await File.map(async(ival,i)=>{
+      console.log(ival);
+      if(ival=='file1' && req.files.file1 !== undefined){
+        body.cab_image_front = await UploadDocument1(req.files.file1,body.vendor,true,body.cab_image_front);
+      }else{
+        delete body.cab_image_front
+      }
+      
+      
+      if(ival=='file2' && req.files.file2 !== undefined){
+        body.cab_image_back = await UploadDocument1(req.files.file2,body.vendor,true,body.cab_image_back);
+      }else{
+        delete body.cab_image_back
+      }
+      
+      
+      if(ival=='file3' && req.files.file3 !== undefined){
+        body.cab_image_side = await UploadDocument1(req.files.file3,body.vendor,true,body.cab_image_side);
+      }else{
+          delete body.cab_image_side
+      }
+
+      if(ival=='file4' && req.files.file4 !== undefined){
+        body.cab_insurance = await UploadDocument1(req.files.file4,body.vendor,true,body.cab_insurance);
+      }else{
+          delete body.cab_insurance
+      }
+
+     })
+
+    //  await Promise.all(wait)
+
+      // delete body.d_front;
+      // delete body.d_back;
+      // delete body.police_c;
+
+      delete body.file1;
+      delete body.file2; 
+      delete body.file3;  
+      delete body.file4; 
+
+      console.log(body,"1739");
+
+      let result = await Model.updateMaster(
+        `tbl_vendor_cabs`,
+        req.params.id,
+        body
+        )
+
+      
+
+      if(result){
+        console.log(result);
+        let FetchData = await Model.getAllData(
+          `tbl_vendor_cabs.*,tbl_user_web.username`,
+          `tbl_vendor_cabs,tbl_user_web`,
+          `tbl_vendor_cabs.vendor = tbl_user_web.id and tbl_user_web.status = 1`,
+          1,
+          `tbl_user_web.id`
+        )
+        if(FetchData){
+          console.log(FetchData);
+          res.send(FetchData)
+          res.status(200)
+
+        }else{
+
+          res.send(false)
+          res.status(400)
+  
+        }
+
+      }else{
+
+        res.send(false)
+        res.status(400)
+
+      }
+      
+    } catch (error) {
+      endConnection();
+      console.error(chalk.red(error));
+      res.status(500);
+      next(error);
+    }
+  }
+
+
   const EditDriverdata = async(req,res,next)=>{
     try {
 
@@ -3590,10 +3691,52 @@ const TripsJson = async(req,res,next)=>{
     }
 
 
+    const DeleteCab = async(req,res,next)=>{
+      let id = req.params.id;
+    try {
+      console.log("body",id);
+      let updateDriver  = await Model.updateMaster(
+        `tbl_vendor_cabs`,
+        id,
+        { hide_show : 0 },
+        "id"
+      )
+
+      if(updateDriver){
+
+        let checkdata = await Model.getAllData(
+          `*`,
+          `tbl_vendor_cabs`,
+          `id = ${id}`,
+          1,
+          1
+        )
+        if(checkdata.length){
+
+              res.send(checkdata)
+              res.status(200)
+        }
+
+      }else{
+        res.status(200)
+        res.send(false)
+      }
+
+      
+    } catch (error) {
+      endConnection();
+    console.error(chalk.red(error));
+    res.status(500);
+    next(error);
+    }
+  }
+
+
 module.exports={
     LoginAdmin,
     DownloadImage,
     AddUser,
+    DeleteCab,
     getFreedom,
     updateMaster,
     deleteMaster,
@@ -3635,5 +3778,6 @@ module.exports={
     StartandEndTrip,
     CheckOtpandPassword,
     VendorUserLogout,
-    OTPchecksadfsf
+    OTPchecksadfsf,
+    EditCabdata
   }

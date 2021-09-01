@@ -26,7 +26,7 @@ const OTPchecksadfsf = async(req,res,next)=>{
 
    
 
-    console.log(result);
+    // console.log(result);
 
     if(result){
 	res.send(result)
@@ -158,6 +158,7 @@ const CheckOtpandPassword = async(req,res,next)=>{
 // OTPcheck()
 
 var cron = require('node-cron');
+const { fail } = require('assert');
 
 cron.schedule('* * * * * *', () => {
   //console.log('running a task every minute');
@@ -349,7 +350,7 @@ const SendAssignedTripNotification = async(req,res,next)=>{
 
     let removeFilePAth = __dirname + '/Images/' + `/${b}/`+OldFile;
     console.log(removeFilePAth,"removeFilePAth");
-    fs.unlink(removeFilePAth,function(err){
+       fs.unlink(removeFilePAth,function(err){
       if(err) return console.log(err);
       console.log('file deleted successfully');
        }); 
@@ -1195,7 +1196,7 @@ const StartandEndTrip =async(req,res,next) =>{
     )
 
     if(UpdateActive){
-
+        let result12 = []
       let result = await Model.getAllData(
         `start,end,trip_id,vendor_id`,
         `tbl_active_trips`,
@@ -1206,25 +1207,26 @@ const StartandEndTrip =async(req,res,next) =>{
 
       console.log(result,"1188");
 
-      if(result){
+      if(result.length){
 
         
 
-        let wait = await result.map(async(ival,i)=>{
+       
 
-          if(ival.end == 1){
+          if(result[0].end == 1){
 
             let ChangeTripStatus = await Model.updateMaster(
               `tbl_trips`,
-                ival.trip_id,
-                {trip_status:"completed"}
+              result[0].trip_id,
+              {trip_status:"completed"}
             )
             console.log(ChangeTripStatus,"1203");
 
             let ChangeTripStatus1 = await Model.updateMaster(
-              `tbl_active_trips`,
-                ival.trip_id,
-                {status:"completed"}
+               `tbl_active_trips`,
+               result[0].trip_id,
+                {status:"completed"},
+                "trip_id"
             )
 
                 console.log(ChangeTripStatus1,"ChangeTripStatus");
@@ -1232,7 +1234,7 @@ const StartandEndTrip =async(req,res,next) =>{
             if(ChangeTripStatus && ChangeTripStatus1 ){
 
 
-              if(i+1 == result.length){
+              
 
 
                 // let result1 = await Model.getAllData(
@@ -1250,7 +1252,7 @@ const StartandEndTrip =async(req,res,next) =>{
                   
                   `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
                   
-                  `tbl_active_trips.vendor_id=${ival.vendor_id} and tbl_active_trips.end = 0 and tbl_active_trips.status='completed' and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
+                  `tbl_active_trips.vendor_id=${result[0].vendor_id} and tbl_active_trips.end = 0 and tbl_active_trips.status='completed' and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
                   DropCity.id = tbl_trips.drop_location `,
                   1,
                   `tbl_active_trips.id`
@@ -1263,44 +1265,37 @@ const StartandEndTrip =async(req,res,next) =>{
                   res.status(200)
                 }
 
-              }
-
-
-            }
-          
-          }else if(ival.start==1){
-
-
-           if(i+1 == result.length){
-
-            let ActiveTripsNew = await Model.getAllData(
-              `tbl_active_trips.*,tbl_trips.trip_id as T_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
-              tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
-              tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
-              
-              `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
-              
-              `tbl_active_trips.vendor_id=${ival.vendor_id} and tbl_active_trips.start = 1 or tbl_active_trips.start = 0 and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
-              DropCity.id = tbl_trips.drop_location `,
-              1,
-              `tbl_active_trips.id`
-            )
-    
            
 
-            if(ActiveTripsNew){
-              res.send(ActiveTripsNew)
-              res.status(200)
-            }
 
-           }
+            }else{
+              res.send(false)
+                  res.status(400)
+            }
+          
+          }else{
+
+              console.log("start going");
+            
+
+            
+
+            
+              res.send(true)
+              res.status(200)
+           
+
+        
             
 
           }
 
-        });
+      
 
-        await Promise.all(wait);
+      }else{
+
+        res.send(false)
+        res.status(400)
 
       }
 
@@ -1492,7 +1487,7 @@ const StartandEndTrip =async(req,res,next) =>{
             ddd.push(ival)
           })
           await Promise.all(waittt)
-          console.log(ddd);
+          // console.log(ddd);
           result[0].ActiveTrips = JSON.stringify(ddd)
     }else{
       result[0].ActiveTrips = JSON.stringify([])
@@ -1634,7 +1629,7 @@ const StartandEndTrip =async(req,res,next) =>{
         1,
         1
       )
-      console.log(result);
+      // console.log(result);
       if(result.length){
 
         let login_token = await randomString(10, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
@@ -1658,7 +1653,7 @@ const StartandEndTrip =async(req,res,next) =>{
           1,
           1
         )
-        console.log(StateData,"STATE")
+        // console.log(StateData,"STATE")
         if(StateData){
           result[0].state = JSON.stringify(StateData)
         }else{
@@ -1803,10 +1798,10 @@ const StartandEndTrip =async(req,res,next) =>{
           
           await Promise.all(wait);
 
-          console.log(result,"arrarrarr");
+          // console.log(result,"arrarrarr");
           
            result[0].wallethistory = JSON.stringify(arr);
-           console.log(result,"resultresultresult");
+          //  console.log(result,"resultresultresult");
       //  log
             // ;
             res.status(200);
@@ -1814,7 +1809,7 @@ const StartandEndTrip =async(req,res,next) =>{
       }else{
 
         result[0].wallethistory = null;
-        console.log(result);
+        // console.log(result);
     
          res.send(result);
          res.status(200);
@@ -2063,7 +2058,7 @@ const StartandEndTrip =async(req,res,next) =>{
             
              result[0].wallethistory = JSON.stringify(arr);
   
-             console.log(result,1353);
+            //  console.log(result,1353);
          
               res.send(result);
               res.status(200);
@@ -2539,29 +2534,49 @@ const StartandEndTrip =async(req,res,next) =>{
 
       let body = req.body;
 
-      // console.log(body);
+      console.log(body,"body"); 
+
+      console.log(req.files)
+
+      let File = ["d_front","d_back","police_c"]
 
       // console.log(req.files)
 
-      if( body.file1 !='' ){
-        body.driving_license_front = await UploadDocument1(req.files.file1,body.vendor,true,body.d_front);
-
-        // console.log(body);
-      }else if(body.file2 !=''){
-        body.driving_license_back = await UploadDocument1(req.files.file2,body.vendor,true,body.d_back);
-      }else if( body.file3 !='' ){
-        body.police_verify = await UploadDocument1(req.files.file3,body.vendor,true,body.police_c);
+    let wait = await File.map(async(ival,i)=>{
+      console.log(ival);
+      if(ival=='d_front' && req.files.d_front !== undefined){
+        body.driving_license_front = await UploadDocument1(req.files.d_front,body.vendor,true,body.d_front);
+      }else{
+        delete body.driving_license_front
       }
+      
+      
+      if(ival=='d_back' && req.files.d_back!== undefined){
+        body.driving_license_back = await UploadDocument1(req.files.d_back,body.vendor,true,body.d_back);
+      }else{
+        delete body.driving_license_back
+      }
+      
+      
+      if(ival=='police_c' && req.files.police_c !== undefined){
+        body.police_verify = await UploadDocument1(req.files.police_c,body.vendor,true,body.police_c);
+      }else{
+          delete body.police_verify
+      }
+
+     })
+
+    //  await Promise.all(wait)
 
       delete body.d_front;
       delete body.d_back;
       delete body.police_c;
 
-      delete body.file1;
-      delete body.file2; 
-      delete body.file3;  
+      // delete body.file1;
+      // delete body.file2; 
+      // delete body.file3;  
 
-      // console.log(body,"1739");
+      console.log(body,"1739");
 
       let result = await Model.updateMaster(
         `tbl_vendor_drivers`,
@@ -2583,7 +2598,18 @@ const StartandEndTrip =async(req,res,next) =>{
           // console.log(FetchData);
           res.send(FetchData)
           res.status(200)
+
+        }else{
+
+          res.send(false)
+          res.status(400)
+  
         }
+
+      }else{
+
+        res.send(false)
+        res.status(400)
 
       }
       
@@ -2805,7 +2831,7 @@ const StartandEndTrip =async(req,res,next) =>{
         1
       )
 
-      console.log(body,"2757");
+      // console.log(body,"2757");
       
       if(checkDriver.length==0){
 
@@ -2813,7 +2839,7 @@ const StartandEndTrip =async(req,res,next) =>{
 
       File = JSON.parse(File)
 
-      console.log(req.files)
+      // console.log(req.files)
 
     let wait = await File.map(async(ival,i)=>{
       
@@ -2887,7 +2913,7 @@ const StartandEndTrip =async(req,res,next) =>{
     // console.log(File)
 
     let wait = await File.map(async(ival,i)=>{
-      
+     
       if(ival=='file1' && req.files.file1){
         body.driving_license_front = await UploadDocument1(req.files.file1,body.vendor)
       }else if(ival=='file2' && req.files.file2){
@@ -3145,12 +3171,12 @@ try{
 
       let LocationLoop = JSON.parse(UserTripLocation[0].travel_location);
 
-      console.log(LocationLoop,"UserTripLocation");
+      // console.log(LocationLoop,"UserTripLocation");
 
     let result = await Model.getAllData(
     `tbl_trips.*,tbl_state.id as PickState,StateData.id as DropState,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
     `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city,tbl_state,tbl_state as StateData`,
-    `tbl_state.id = tbl_city.state_id and StateData.id = new_city.state_id  and tbl_user_web.id = tbl_trips.customer_id and tbl_trips.trip_assigned_to is null and tbl_trips.trip_status = 'active' and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id `,
+    `tbl_state.id = tbl_city.state_id and tbl_trips.trip_status = 'active' and StateData.id = new_city.state_id  and tbl_user_web.id = tbl_trips.customer_id and tbl_trips.trip_assigned_to is null and tbl_trips.trip_status = 'active' and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id `,
     1,
     `tbl_trips.id DESC`
     );
@@ -3205,7 +3231,7 @@ try{
 
       await Promise.all(wait)
 
-       console.log(NewResult,"3150");
+      //  console.log(NewResult,"3150");
  
       if(NewResult){ 
         // console.log('====================================');
@@ -3258,7 +3284,7 @@ try{
       );
       // let result = await NewTrips(id)
       if(result){
-        console.log(result.length); 
+        // console.log(result.length); 
         res.status(200)
         res.send(result)
       }
@@ -3395,9 +3421,9 @@ const TripsJson = async(req,res,next)=>{
 
           if(tbl_trips){
 
-            console.log(tbl_bidding_trips,"3331")
+            // console.log(tbl_bidding_trips,"3331")
 
-            console.log(tbl_trips,"3333")
+            // console.log(tbl_trips,"3333")
             
             let tbl_user_web = await Model.getAllData(
               `*`,
@@ -3406,7 +3432,7 @@ const TripsJson = async(req,res,next)=>{
               1,
               1
             )
-              console.log(tbl_user_web,"3342");
+              // console.log(tbl_user_web,"3342");
             if(tbl_user_web.length){
 
               let wallet = parseInt( tbl_user_web[0].wallet ); 
@@ -3428,7 +3454,7 @@ const TripsJson = async(req,res,next)=>{
                 "id"
               )
 
-              console.log(tbl_trips1,"3364");
+              // console.log(tbl_trips1,"3364");
 
               let User_Wallet = await Model.updateMaster(
                 `tbl_user_web`,
@@ -3437,7 +3463,7 @@ const TripsJson = async(req,res,next)=>{
                 "id"
               )
 
-              console.log(User_Wallet,"3373")
+              // console.log(User_Wallet,"3373")
 
               let arr = {}
               arr.amount = penalty;
@@ -3446,11 +3472,11 @@ const TripsJson = async(req,res,next)=>{
               arr.user_id = id;
 
               let Wallet_History = await Model.addMaster(`tbl_wallet_master_history`,arr)
-              console.log(Wallet_History,"3382")
+              // console.log(Wallet_History,"3382")
               if(Wallet_History){
 
                 // KARAN karan
-                console.log(id,"3394");
+                // console.log(id,"3394");
                 let ActiveTrips = await Model.getAllData(
                   `*`,
                   `tbl_bidding_trips`,
@@ -3458,7 +3484,7 @@ const TripsJson = async(req,res,next)=>{
                   1,
                   `id DESC`
                 )
-                console.log(id,ActiveTrips,"3394");
+                // console.log(id,ActiveTrips,"3394");
                 if(ActiveTrips){
     
                   res.send(ActiveTrips)
@@ -3523,6 +3549,46 @@ const TripsJson = async(req,res,next)=>{
     }
     }
 
+    const DeleteDriver = async(req,res,next)=>{
+        let id = req.params.id;
+      try {
+        console.log("body",id);
+        let updateDriver  = await Model.updateMaster(
+          `tbl_vendor_drivers`,
+          id,
+          { hide_show : 0 },
+          "id"
+        )
+
+        if(updateDriver){
+
+          let checkdata = await Model.getAllData(
+            `*`,
+            `tbl_vendor_drivers`,
+            `id = ${id}`,
+            1,
+            1
+          )
+          if(checkdata.length){
+
+                res.send(checkdata)
+                res.status(200)
+          }
+
+        }else{
+          res.status(200)
+          res.send(false)
+        }
+
+        
+      } catch (error) {
+        endConnection();
+      console.error(chalk.red(error));
+      res.status(500);
+      next(error);
+      }
+    }
+
 
 module.exports={
     LoginAdmin,
@@ -3541,6 +3607,7 @@ module.exports={
     AddTrips,
     TripsData,
     AppLogin,
+    DeleteDriver,
     sendOtp,
     RefreshApp,
     APPregister,

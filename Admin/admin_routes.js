@@ -158,7 +158,7 @@ router.route('/UpdateToken/:id?').post(Controller.UpdateToken);
 
 router.route('/AddDriverdata/:id?').post(Controller.AddDriverdata).put(Controller.EditDriverdata)
 
-router.route('/AddDriverdata1/:id?').post(Controller.AddDriverdata1)
+router.route('/AddDriverdata1/:id?').post(Controller.AddDriverdata1).put(Controller.EditDriverdata)
 
 router.route('/Addcabs1/:id?').post(Controller.Addcabs1)
 
@@ -177,6 +177,9 @@ router.route('/VendorUserLogout/:id').post(Controller.VendorUserLogout)
 router.route('/CancelTrip/:id?').post(Controller.CancelTrip)  
 
 router.route('/OTPchecksadfsf').get(Controller.OTPchecksadfsf)  
+
+router.route('/DeleteDriver/:id').get(Controller.DeleteDriver) 
+
 
  module.exports = router;
 

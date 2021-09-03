@@ -619,7 +619,7 @@ const addMaster = async (req, res, next) => {
 
     }
 
-    console.log(wallet,"wallet2");
+    console.log(body,"wallet2");
 
     const result = await Model.updateMaster(
       `tbl_user_web`,
@@ -3565,7 +3565,7 @@ const TripsJson = async(req,res,next)=>{
               // console.log(User_Wallet,"3373")
 
               let arr = {}
-              arr.amount = penalty;
+              arr.amount = Math.abs(penalty); 
               arr.debited_credited = 'credited'
               arr.reason = 'trip cancelled'
               arr.user_id = id;

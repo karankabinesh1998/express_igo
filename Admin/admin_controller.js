@@ -1,38 +1,47 @@
 const Model = require('../Model');
 const { endConnection } = require('../dataBaseConnection');
 const chalk = require("chalk");
-// const { getAllData } = require('../Model');
+const { FACTOR_API_KEY } = require('../Envreader'); 
 const fs = require("fs");
 // const mv = require('mv');
 // const moment = require('moment')
 var admin = require("firebase-admin");
+const path = require('path')
 
 var serviceAccount = require("./igotaxy-firebase-adminsdk-2c5sg-2a09a1a5ee.json");
 
-const TwoFactor = new (require('2factor'))('dd227a2a-fc5c-11eb-a13b-0200cd936042')
+const TwoFactor = new (require('2factor'))(FACTOR_API_KEY)
 
+// const axios = require('axios');
+const http = require('http')
 
+var CircularJSON = require('circular-json');
 
+const download = async(url, path) => new Promise((resolve, reject) => {
+   http.get(url, response => {
+      const statusCode = response.statusCode;
+      if (statusCode !== 200) {
+          return reject('Download error!');
+      }
+  
+      resolve(response);
+       });}).catch(err => console.error(err));
 
-// console.log(wss);
 
 
 const OTPchecksadfsf = async(req,res,next)=>{
   
   try {
+const pipFilePath = path.join(__dirname, "Images1.jpg");
+   
+   let data = await download("http://i3.ytimg.com/vi/J---aiyznGQ/mqdefault.jpg",pipFilePath)
 
-    let result = await NewTrips(5)
+   console.log(data,"data");
 
+   res.send(data._readableState.buffer.head) 
 
    
 
-    // console.log(result);
-
-    if(result){
-	res.send(result)
-    res.status(200)
-		
-	}
 
 } catch (error) {
   res.status(500)
@@ -40,6 +49,7 @@ const OTPchecksadfsf = async(req,res,next)=>{
   next(error)
   }
 }
+
 
 const sendOtp = async(req,res,next)=>{
 
@@ -1450,6 +1460,20 @@ const StartandEndTrip =async(req,res,next) =>{
           `id DESC`
         );
 
+        let tbl_announcement = await Model.getAllData(
+          `*`,
+          `tbl_announcement`,
+          `status = 1`,
+          1,
+          `id DESC`
+        )
+
+        if(tbl_announcement){
+          result[0].announcement = JSON.stringify(tbl_announcement)
+
+        }else{
+          result[0].announcement = JSON.stringify([])
+        }
 
 
         if(BiddingTrip){
@@ -1658,6 +1682,21 @@ const StartandEndTrip =async(req,res,next) =>{
           result[0].state = JSON.stringify(StateData)
         }else{
           result[0].state = JSON.stringify([])
+        }
+
+        let tbl_announcement = await Model.getAllData(
+          `*`,
+          `tbl_announcement`,
+          `status = 1`,
+          1,
+          `id DESC`
+        )
+
+        if(tbl_announcement){
+          result[0].announcement = JSON.stringify(tbl_announcement)
+
+        }else{
+          result[0].announcement = JSON.stringify([])
         }
 
         let vendorDrivers = await Model.getAllData(
@@ -2265,6 +2304,21 @@ const StartandEndTrip =async(req,res,next) =>{
               result[0].BiddingTrip  = JSON.stringify(BiddingTrip)
             }else{
               result[0].BiddingTrip  = JSON.stringify([])
+            }
+
+            let tbl_announcement = await Model.getAllData(
+              `*`,
+              `tbl_announcement`,
+              `status = 1`,
+              1,
+              `id DESC`
+            )
+    
+            if(tbl_announcement){
+              result[0].announcement = JSON.stringify(tbl_announcement)
+    
+            }else{
+              result[0].announcement = JSON.stringify([])
             }
 
             let vendorDrivers = await Model.getAllData(
@@ -3648,6 +3702,58 @@ const TripsJson = async(req,res,next)=>{
     }
     }
 
+    const Add_Announcement = async(req,res,next)=>{
+      let body = req.body;
+      let id = req.params.id;
+
+      
+      console.log(req.files)
+      try {
+
+        if(req.files.images !== undefined){
+          // UploadDocument
+          body.images = await UploadDocument1(req.files.images,id)
+        }else{
+          delete body.images
+        }
+
+        body.admin_id = id;
+
+        let AddAnnounce = await Model.addMaster(
+          `tbl_announcement`,
+          body
+        )
+
+        console.log(AddAnnounce);
+        console.log(body);
+        if(AddAnnounce){
+
+          let getData = await Model.getAllData(
+            `*`,
+            `tbl_announcement`,
+            `status = 1`,
+            1,
+            `id DESC`
+          )
+
+          if(getData){
+              res.send(getData)
+            res.status(200)
+          }
+
+        }else{
+          res.send(false)
+          res.status(400)
+        }
+        
+      } catch (error) {
+        endConnection();
+      console.error(chalk.red(error));
+      res.status(500);
+      next(error);
+      }
+    }
+
     const DeleteDriver = async(req,res,next)=>{
         let id = req.params.id;
       try {
@@ -3772,6 +3878,7 @@ module.exports={
     AddDriverdata1,
     Addcabs1,
     Addcabs,
+    Add_Announcement,
     ConfirmActiveTrip,
     StartandEndTrip,
     CheckOtpandPassword,

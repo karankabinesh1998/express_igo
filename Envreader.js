@@ -10,6 +10,7 @@ const Envreader = {
   DB_USERNAME: process.env.DB_USERNAME,
   DB_PASSWORD: process.env.DB_PASSWORD,
   DB_TIMEZONE: process.env.DB_TIMEZONE,
+  FACTOR_API_KEY:process.env.FACTOR_API_KEY
 };
 
 module.exports = Envreader;

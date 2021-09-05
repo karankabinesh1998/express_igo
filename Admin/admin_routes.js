@@ -178,9 +178,11 @@ router.route('/CheckOtpandPassword').post(Controller.CheckOtpandPassword)
 
 router.route('/VendorUserLogout/:id').post(Controller.VendorUserLogout)  
 
-router.route('/CancelTrip/:id?').post(Controller.CancelTrip)  
+router.route('/CancelTrip/:id?').post(Controller.CancelTrip) 
 
-router.route('/OTPchecksadfsf').get(Controller.OTPchecksadfsf)  
+router.route('/announce/:id?').post(Controller.Add_Announcement)
+
+router.route('/hello').get(Controller.OTPchecksadfsf)  
 
 router.route('/DeleteDriver/:id').get(Controller.DeleteDriver)
 

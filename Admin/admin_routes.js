@@ -134,6 +134,10 @@ router
   .get(Controller.RefreshApp)
 
   router
+  .route('/BackGroundRefreshApp/:id?/:token?')
+  .get(Controller.BackGroundRefreshApp)
+
+  router
   .route('/gettrips')
   .get(Controller.TripsData)
 
@@ -182,11 +186,15 @@ router.route('/CancelTrip/:id?').post(Controller.CancelTrip)
 
 router.route('/announce/:id?').post(Controller.Add_Announcement)
 
-router.route('/hello').get(Controller.OTPchecksadfsf)  
+router.route('/hello').post(Controller.OTPchecksadfsf)  
+
+router.route('/FetchAnnounce').get(Controller.FetchAnnounce)
 
 router.route('/DeleteDriver/:id').get(Controller.DeleteDriver)
 
-router.route('/DeleteCab/:id').get(Controller.DeleteCab) 
+router.route('/DeleteCab/:id').get(Controller.DeleteCab) ;
+
+router.route('/events').get(Controller.eventsHandler);
 
 
  module.exports = router;

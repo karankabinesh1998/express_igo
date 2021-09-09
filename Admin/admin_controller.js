@@ -4,7 +4,7 @@ const chalk = require("chalk");
 const { FACTOR_API_KEY } = require('../Envreader'); 
 const fs = require("fs");
 // const mv = require('mv');
-// const moment = require('moment')
+
 var admin = require("firebase-admin");
 const path = require('path')
 
@@ -12,36 +12,71 @@ var serviceAccount = require("./igotaxy-firebase-adminsdk-2c5sg-2a09a1a5ee.json"
 
 const TwoFactor = new (require('2factor'))(FACTOR_API_KEY)
 
-// const axios = require('axios');
+const wsServer = require('./webSocket');
+
 const http = require('http')
 
-var CircularJSON = require('circular-json');
+const https = require('https')
+// var CircularJSON = require('circular-json');
 
-const download = async(url, path) => new Promise((resolve, reject) => {
-   http.get(url, response => {
-      const statusCode = response.statusCode;
-      if (statusCode !== 200) {
-          return reject('Download error!');
-      }
+const clients =[]
+
+const facts = []
+
+
+const  eventsHandler=(request, response, next) =>{
+
+  console.log("eventsHandler");
+  const headers = {
+    'Content-Type': 'text/event-stream',
+    'Connection': 'keep-alive',
+    'Cache-Control': 'no-cache'
+  };
+  response.writeHead(200, headers);
+
+  const data = `data: ${JSON.stringify(facts)}\n\n`;
+
+  response.write(data);
+
+  const clientId = Date.now();
+
+  const newClient = {
+    id: clientId,
+    response
+  };
+
+  clients.push(newClient);
+
+  request.on('close', () => {
+    console.log(`${clientId} Connection closed`);
+    clients = clients.filter(client => client.id !== clientId);
+  });
+
+}
+
+
+function sendEventsToAll(newFact) {
+  clients.forEach(client => client.response.write(`data: ${JSON.stringify(facts)}\n\n`))
+}
+
+const OTPchecksadfsf = async(request,respsonse,next)=>{
   
-      resolve(response);
-       });}).catch(err => console.error(err));
+try {
 
 
 
-const OTPchecksadfsf = async(req,res,next)=>{
-  
-  try {
-const pipFilePath = path.join(__dirname, "Images1.jpg");
-   
-   let data = await download("http://i3.ytimg.com/vi/J---aiyznGQ/mqdefault.jpg",pipFilePath)
+  console.log(request.body,"haskfh");
+  const newFact = request.body;
+  facts.push(newFact);
+  respsonse.json(newFact)
+  return sendEventsToAll(newFact);
 
-   console.log(data,"data");
 
-   res.send(data._readableState.buffer.head) 
+ console.log("hello")
 
-   
 
+
+// res.send("wsServer")
 
 } catch (error) {
   res.status(500)
@@ -49,6 +84,11 @@ const pipFilePath = path.join(__dirname, "Images1.jpg");
   next(error)
   }
 }
+
+
+
+
+
 
 
 const sendOtp = async(req,res,next)=>{
@@ -169,6 +209,7 @@ const CheckOtpandPassword = async(req,res,next)=>{
 
 var cron = require('node-cron');
 const { fail } = require('assert');
+const responseTime = require('response-time');
 
 cron.schedule('* * * * * *', () => {
   //console.log('running a task every minute');
@@ -1440,12 +1481,13 @@ const StartandEndTrip =async(req,res,next) =>{
       if(result){
 
         let StateData = await Model.getAllData(
-            `id,state as name`,
+            `id as value ,state as label`,
           `tbl_state`,
           `status=1`,
           1,
           1
         )
+        // console.log(StateData,"STATE")
         if(StateData){
           result[0].state = JSON.stringify(StateData)
         }else{
@@ -1467,7 +1509,7 @@ const StartandEndTrip =async(req,res,next) =>{
           1,
           `id DESC`
         )
-
+        
         if(tbl_announcement){
           result[0].announcement = JSON.stringify(tbl_announcement)
 
@@ -1475,7 +1517,227 @@ const StartandEndTrip =async(req,res,next) =>{
           result[0].announcement = JSON.stringify([])
         }
 
+        // console.log(result[0].announcement,65365);
+        if(BiddingTrip){
 
+          let dddd =  []
+          let waittt1=await  BiddingTrip.map((ival,i)=>{
+               ival.activeindicator = false
+               ival.activeindicator1 = false;
+               dddd.push(ival)
+             })
+             await Promise.all(waittt1)
+          result[0].BiddingTrip  = JSON.stringify(dddd);
+        }else{
+          result[0].BiddingTrip  = JSON.stringify([]);
+        }
+
+    let ActiveTrips = await Model.getAllData(
+    `tbl_active_trips.*,tbl_trips.trip_id as Id_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
+    tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
+    tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
+
+    `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
+
+    `tbl_active_trips.vendor_id=${result[0].id} and tbl_active_trips.end = 0 and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
+    DropCity.id = tbl_trips.drop_location `,
+    1,
+    `tbl_active_trips.id`
+    )
+
+    if(ActiveTrips){
+      let ddd =  []
+       let waittt=await  ActiveTrips.map((ival,i)=>{
+            ival.activeindicator = false
+            ival.activeindicator1 = false;
+            ddd.push(ival)
+          })
+          await Promise.all(waittt)
+          // console.log(ddd);
+          result[0].ActiveTrips = JSON.stringify(ddd)
+    }else{
+      result[0].ActiveTrips = JSON.stringify([])
+    }
+
+    let ActiveTrips1 = await Model.getAllData(
+      `tbl_active_trips.*,tbl_trips.trip_id as Id_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
+      tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
+      tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
+      
+      `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
+      
+      `tbl_active_trips.vendor_id=${result[0].id} and tbl_active_trips.end = 1 and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
+      DropCity.id = tbl_trips.drop_location `,
+      1,
+      `tbl_active_trips.id`
+      )
+      
+          if(ActiveTrips){
+            result[0].TripHistory = JSON.stringify(ActiveTrips1)
+          }else{
+            result[0].TripHistory = JSON.stringify([])
+          }
+
+
+        let vendorDrivers = await Model.getAllData(
+          `*`,
+          `tbl_vendor_drivers`,
+          `vendor=${result[0].id}`,
+          1,
+          `id`
+        )
+
+        if(vendorDrivers){
+          result[0].vendorDrivers = JSON.stringify(vendorDrivers)
+        }else{
+          result[0].vendorDrivers = JSON.stringify([])
+        }
+
+        let vendorCabs = await Model.getAllData(
+          `*`,
+          `tbl_vendor_cabs`,
+          `vendor=${result[0].id}`,
+          1,
+          `id`
+        )
+
+        if(vendorCabs){
+          result[0].vendorCabs = JSON.stringify(vendorCabs)
+        }else{
+          result[0].vendorCabs = JSON.stringify([])
+        }
+
+        let WalletHistory = await Model.getAllData(
+          `tbl_wallet_master_history.*`,
+          `tbl_user_web,tbl_wallet_master_history`,
+          `tbl_user_web.id = ${result[0].id} and tbl_wallet_master_history.user_id = tbl_user_web.id`,
+          `1`,
+          `tbl_wallet_master_history.id DESC`
+        )
+
+        let tbl_vendar_documents = await Model.getAllData(
+          `*`,
+          `tbl_vendar_documents`,
+          `userid=${result[0].id}`,
+          1,
+          1
+        )
+        if(tbl_vendar_documents){
+
+          
+          result[0].Documentation = JSON.stringify(tbl_vendar_documents)
+
+        }else{
+
+          result[0].Documentation = null
+
+        }
+        
+        if(WalletHistory){
+         
+          let arr =[]
+
+          let wait = await   WalletHistory.map((ival,i)=>{
+            
+            arr.push([i+1 , ival.amount , ival.debited_credited,ival.reason,ival.created_At])
+
+          })
+
+          
+          await Promise.all(wait);
+          
+           result[0].wallethistory = JSON.stringify(arr);
+
+          //  console.log(result);
+       
+            res.send(result);
+            res.status(200);
+      }else{
+
+        result[0].wallethistory = null;
+        // console.log(result);
+    
+         res.send(result);
+         res.status(200);
+
+      }
+      }else{
+        res.send(false);
+        res.status(404)
+      }
+     
+
+
+    } catch (error) {
+      //db end connection
+      // endConnection();
+      console.error(chalk.red(error));
+      res.status(500);
+      next(error);
+    }
+  };
+
+
+
+
+  const BackGroundRefreshApp = async (req, res, next) => {
+    
+    // const body = req.body;
+
+    let id = req.params.id;
+
+    let token = req.params.token;
+    
+        console.log(id,token);
+    try {
+
+      let result = await Model.getAllData(
+        `*`,
+        `tbl_user_web`,
+        `id=${id} and login_token='${token}'`,
+        1,
+        1
+      );
+      if(result){
+
+        let StateData = await Model.getAllData(
+            `id as value ,state as label`,
+          `tbl_state`,
+          `status=1`,
+          1,
+          1
+        )
+        // console.log(StateData,"STATE")
+        if(StateData){
+          result[0].state = JSON.stringify(StateData)
+        }else{
+          result[0].state = JSON.stringify([])
+        }
+
+        let BiddingTrip = await Model.getAllData(
+          `*`,
+          `tbl_bidding_trips`,
+          `vendor_id = ${result[0].id} and status = 'approved'`,
+          1,
+          `id DESC`
+        );
+
+        let tbl_announcement = await Model.getAllData(
+          `*`,
+          `tbl_announcement`,
+          `status = 1`,
+          1,
+          `id DESC`
+        )
+        
+        if(tbl_announcement){
+          result[0].announcement = JSON.stringify(tbl_announcement)
+
+        }else{
+          result[0].announcement = JSON.stringify([])
+        }
+
+        // console.log(result[0].announcement,65365);
         if(BiddingTrip){
 
           let dddd =  []
@@ -1643,7 +1905,7 @@ const StartandEndTrip =async(req,res,next) =>{
 
     // login_token
     
-  console.log(body);
+  
     try {
 
       let result = await Model.getAllData(
@@ -1671,33 +1933,20 @@ const StartandEndTrip =async(req,res,next) =>{
        
 
         let StateData = await Model.getAllData(
-          `id,state as name`,
+          `id as value ,state as label`,
           `tbl_state`,
           `status=1`,
           1,
           1
         )
-        // console.log(StateData,"STATE")
+        console.log(StateData,"STATE")
         if(StateData){
           result[0].state = JSON.stringify(StateData)
         }else{
           result[0].state = JSON.stringify([])
         }
 
-        let tbl_announcement = await Model.getAllData(
-          `*`,
-          `tbl_announcement`,
-          `status = 1`,
-          1,
-          `id DESC`
-        )
-
-        if(tbl_announcement){
-          result[0].announcement = JSON.stringify(tbl_announcement)
-
-        }else{
-          result[0].announcement = JSON.stringify([])
-        }
+        
 
         let vendorDrivers = await Model.getAllData(
           `*`,
@@ -1725,6 +1974,20 @@ const StartandEndTrip =async(req,res,next) =>{
           result[0].vendorCabs = JSON.stringify(vendorCabs)
         }else{
           result[0].vendorCabs = JSON.stringify([])
+        }
+
+        let tbl_announcement = await Model.getAllData(
+          `*`,
+          `tbl_announcement`,
+          `status = 1`,
+          1,
+          `id DESC`
+        )
+        if(tbl_announcement.length){ 
+          result[0].announcement = JSON.stringify(tbl_announcement)
+
+        }else{
+          result[0].announcement = JSON.stringify([])
         }
 
 
@@ -1809,10 +2072,12 @@ const StartandEndTrip =async(req,res,next) =>{
         )
 
         if(BiddingTrip){
-          let dddd =  []
+
+          let dddd =  [] ;
           let waittt1=await  BiddingTrip.map((ival,i)=>{
                ival.activeindicator = false;
                ival.activeindicator1 = false;
+
                dddd.push(ival)
              })
              await Promise.all(waittt1)
@@ -1869,6 +2134,8 @@ const StartandEndTrip =async(req,res,next) =>{
       next(error);
     }
   };
+
+  
 
   const UpdateBiddingApproval = async(req,res,next)=>{
     const tableName = req.params.tableName;
@@ -2313,8 +2580,8 @@ const StartandEndTrip =async(req,res,next) =>{
               1,
               `id DESC`
             )
-    
-            if(tbl_announcement){
+
+            if(tbl_announcement.length){
               result[0].announcement = JSON.stringify(tbl_announcement)
     
             }else{
@@ -3338,6 +3605,7 @@ try{
 
       let NewResult = []
       
+      if(LocationLoop != null){
       let wait1  = await result.map((ival,i)=>{
          LocationLoop.map((jval,j)=>{
           //  console.log(ival.PickState,jval,ival.DropState);
@@ -3352,7 +3620,7 @@ try{
 
       await Promise.all(wait1)
 
-		
+      }
 
       let tbl_bidding_trips = await Model.getAllData(
         `*`,
@@ -3754,6 +4022,33 @@ const TripsJson = async(req,res,next)=>{
       }
     }
 
+    const FetchAnnounce = async(req,res,next)=>{
+      try {
+
+        let getData = await Model.getAllData(
+          `*`,
+          `tbl_announcement`,
+          `status = 1`,
+          1,
+          `id DESC`
+        )
+
+        if(getData){
+            res.send(getData)
+            res.status(200)
+        }else{
+          res.send(false)
+          res.status(400)
+        }
+        
+      } catch (error) {
+        endConnection();
+      console.error(chalk.red(error));
+      res.status(500);
+      next(error);
+      }
+    }
+
     const DeleteDriver = async(req,res,next)=>{
         let id = req.params.id;
       try {
@@ -3793,6 +4088,7 @@ const TripsJson = async(req,res,next)=>{
       next(error);
       }
     }
+
 
 
     const DeleteCab = async(req,res,next)=>{
@@ -3884,5 +4180,8 @@ module.exports={
     CheckOtpandPassword,
     VendorUserLogout,
     OTPchecksadfsf,
-    EditCabdata
+    EditCabdata,
+    FetchAnnounce,
+    eventsHandler,
+    BackGroundRefreshApp
   }

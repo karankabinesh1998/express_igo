@@ -5,6 +5,7 @@ const { Router } = require('express');
 // const user = require('./api/user/user.routes');
 // const superAdmin = require('./api/superAdmin/superAdmin.routes');
 const Admin = require('./Admin/admin_routes');
+const SocketRoutes = require('./socket/socket.routes')
 // const socket = require('./api/socket/socket.routes');
 // const redis = require('./api/redis/redis.routes');
 // const aws = require('./api/aws/routes')
@@ -18,7 +19,12 @@ router.get('/', (req, res) => {
 });
 
 
+
+// app.get('/events', eventsHandler);
+
 router.use('/admin', Admin);
+
+// router.use('/socket',eventsHandler)
 
 
 module.exports = router;

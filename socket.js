@@ -4,6 +4,8 @@ const socketIO = require('socket.io');
 
 function init(server) {
   const io = socketIO(server);
+
+  // console.log(io);
   
   // const io = socketIO(server);
   console.log('sockets server is listening for connections!');

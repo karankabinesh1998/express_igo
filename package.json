@@ -28,9 +28,12 @@
     "mysql": "^2.18.1",
     "node-cron": "^3.0.0",
     "request": "^2.88.2",
+    "request-progress": "^3.0.0",
     "response-time": "^2.3.2",
     "socket.io": "^4.1.3",
-    "winston": "^3.3.3"
+    "websocket": "^1.0.34",
+    "winston": "^3.3.3",
+    "ws": "^8.2.2"
   },
   "repository": {
     "type": "git",

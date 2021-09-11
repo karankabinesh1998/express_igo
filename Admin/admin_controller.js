@@ -3889,7 +3889,8 @@ const TripsJson = async(req,res,next)=>{
               // console.log(ival.new_pickup_date,time,"fullDate");
 
               if(ival.trip_type != 'One Way'){
-                let Split_it1 = ival.pickup_date.split(" ");
+
+                let Split_it1 = ival.drop_date.split(" ");
   
                 let Split_date1 = Split_it1[0].split("-");
     

@@ -648,18 +648,20 @@ const addMaster = async (req, res, next) => {
     )
     if(GetUserDeatils){
 
-    let debited_credited = body.debited_credited;
-    console.log(debited_credited,"debited_credited");
+    // let debited_credited = body.debited_credited;
+    // console.log(debited_credited,"debited_credited");
     let wallet = GetUserDeatils[0].wallet==null ? 0 : GetUserDeatils[0].wallet ;
 
-    console.log(wallet,"wallet");
+    console.log(id,"wallet");
+   
+    
+      console.log(parseInt(wallet) + parseInt(body.amount),"kkk");
+    if(body.debited_credited=="credited"){
 
-    if(id == null){
+        console.log(parseInt(wallet) + parseInt(body.amount),"2545465");
 
-    if(debited_credited=="credited"){
-        
       wallet = parseInt(wallet) + parseInt(body.amount)
-      body.reason = 'recharge'
+      body.reason = 'recharge';
 
     }else{
 
@@ -668,9 +670,9 @@ const addMaster = async (req, res, next) => {
 
     }
 
-    }
+   
 
-    console.log(body,"wallet2");
+      console.log(wallet,"wallet2");
 
     const result = await Model.updateMaster(
       `tbl_user_web`,
@@ -681,8 +683,8 @@ const addMaster = async (req, res, next) => {
     if(result){
 
     const result1 = await Model.addMaster(tableName, body);
-    console.log(result);
-    console.log(result1);
+    console.log(result,"onupdate");
+    console.log(result1,685);
         if(result1){
 
 
@@ -1521,12 +1523,27 @@ const StartandEndTrip =async(req,res,next) =>{
         if(BiddingTrip){
 
           let dddd =  []
-          let waittt1=await  BiddingTrip.map((ival,i)=>{
+          let waittt1=await  BiddingTrip.map(async(ival,i)=>{
                ival.activeindicator = false
                ival.activeindicator1 = false;
+               let Split_it = ival.pickUp_date.split(" ");
+  
+               let Split_date = Split_it[0].split("-");
+   
+               let Split_time = Split_it[1].split(":");
+   
+               let fullDate = `${Split_date[0]}/${parseInt(Split_date[1])+1}/${Split_date[2]} ${Split_time[0]}:${Split_time[1]}`;
+   
+               let hourago = new Date(fullDate);
+ 
+               let time = await formatAMPM(hourago)
+ 
+                ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${hourago.getMonth()>9 ? hourago.getMonth() : `0${hourago.getMonth()}`}-${hourago.getFullYear()} at ${time}`
+ 
                dddd.push(ival)
              })
              await Promise.all(waittt1)
+             console.log(dddd);
           result[0].BiddingTrip  = JSON.stringify(dddd);
         }else{
           result[0].BiddingTrip  = JSON.stringify([]);
@@ -1741,19 +1758,34 @@ const StartandEndTrip =async(req,res,next) =>{
         if(BiddingTrip){
 
           let dddd =  []
-          let waittt1=await  BiddingTrip.map((ival,i)=>{
-               ival.activeindicator = false
-               ival.activeindicator1 = false;
-               dddd.push(ival)
-             })
-             await Promise.all(waittt1)
+          let waittt1=await  BiddingTrip.map(async(ival,i)=>{
+            ival.activeindicator = false
+            ival.activeindicator1 = false;
+            let Split_it = ival.pickUp_date.split(" ");
+
+            let Split_date = Split_it[0].split("-");
+
+            let Split_time = Split_it[1].split(":");
+
+            let fullDate = `${Split_date[0]}/${parseInt(Split_date[1])+1}/${Split_date[2]} ${Split_time[0]}:${Split_time[1]}`;
+
+            let hourago = new Date(fullDate);
+
+            let time = await formatAMPM(hourago)
+
+             ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${hourago.getMonth()>9 ? hourago.getMonth() : `0${hourago.getMonth()}`}-${hourago.getFullYear()} at ${time}`
+
+            dddd.push(ival)
+          })
+          await Promise.all(waittt1)
+          // console.log(dddd);
           result[0].BiddingTrip  = JSON.stringify(dddd);
         }else{
           result[0].BiddingTrip  = JSON.stringify([]);
         }
 
     let ActiveTrips = await Model.getAllData(
-    `tbl_active_trips.*,tbl_trips.trip_id as Id_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
+    `tbl_active_trips.*,tbl_trips.trip_type,tbl_trips.trip_id as Id_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
     tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
     tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
 
@@ -1765,15 +1797,51 @@ const StartandEndTrip =async(req,res,next) =>{
     `tbl_active_trips.id`
     )
 
-    if(ActiveTrips){
-      let ddd =  []
-       let waittt=await  ActiveTrips.map((ival,i)=>{
-            ival.activeindicator = false
-            ival.activeindicator1 = false;
-            ddd.push(ival)
-          })
-          await Promise.all(waittt)
-          // console.log(ddd);
+    if(ActiveTrips.length){
+      let ddd =  [];
+
+      let waittt1=await  ActiveTrips.map(async(ival,i)=>{
+        console.log(ival);
+        ival.activeindicator = false;
+        ival.activeindicator1 = false;
+        let Split_it = ival.pick_up_date.split(" ");
+
+        let Split_date = Split_it[0].split("-");
+
+        let Split_time = Split_it[1].split(":");
+
+        let fullDate = `${Split_date[0]}/${parseInt(Split_date[1])+1}/${Split_date[2]} ${Split_time[0]}:${Split_time[1]}`;
+
+        let hourago = new Date(fullDate);
+
+        let time = await formatAMPM(hourago)
+
+         ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${hourago.getMonth()>9 ? hourago.getMonth() : `0${hourago.getMonth()}`}-${hourago.getFullYear()} at ${time}`
+
+        if(ival.trip_type == 'Round Trip' ){
+
+          // drop_date
+
+          let Split_it1 = ival.drop_date.split(" ");
+
+        let Split_date1 = Split_it1[0].split("-");
+
+        let Split_time1 = Split_it1[1].split(":");
+
+        let fullDate1 = `${Split_date1[0]}/${parseInt(Split_date1[1])+1}/${Split_date1[2]} ${Split_time1[0]}:${Split_time1[1]}`;
+
+        let hourago1 = new Date(fullDate1);
+
+        let time1 = await formatAMPM(hourago1)
+
+         ival.new_drop_date = `${hourago1.getDate() > 9 ? hourago1.getDate() : `0${hourago1.getDate()}`}-${hourago1.getMonth()>9 ? hourago1.getMonth() : `0${hourago1.getMonth()}`}-${hourago1.getFullYear()} at ${time1}`
+
+        } 
+
+         ddd.push(ival);
+      })
+      await Promise.all(waittt1)
+          // console.log(ddd,"256898");
           result[0].ActiveTrips = JSON.stringify(ddd)
     }else{
       result[0].ActiveTrips = JSON.stringify([])
@@ -2004,14 +2072,61 @@ const StartandEndTrip =async(req,res,next) =>{
           `tbl_active_trips.id`
         )
 
-        if(ActiveTrips){
-          let ddd =  []
-          ActiveTrips.map((ival,i)=>{
-            ival.activeindicator = false
+        if(ActiveTrips.length > 0){
+
+          let ddd =  [];
+          
+
+          let waittt1=await  ActiveTrips.map(async(ival,i)=>{
+            console.log(ival);
+            ival.activeindicator = false;
             ival.activeindicator1 = false;
-            ddd.push(ival)
-          })
-          result[0].ActiveTrips = JSON.stringify(ddd)
+
+            let Split_it = ival.pick_up_date.split(" ");
+    
+            let Split_date = Split_it[0].split("-");
+    
+            let Split_time = Split_it[1].split(":");
+    
+            let fullDate = `${Split_date[0]}/${parseInt(Split_date[1])+1}/${Split_date[2]} ${Split_time[0]}:${Split_time[1]}`;
+    
+            let hourago = new Date(fullDate);
+    
+            let time = await formatAMPM(hourago)
+    
+             ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${hourago.getMonth()>9 ? hourago.getMonth() : `0${hourago.getMonth()}`}-${hourago.getFullYear()} at ${time}`
+    
+            if(ival.trip_type == 'Round Trip' ){
+    
+              // drop_date
+    
+              let Split_it1 = ival.drop_date.split(" ");
+    
+            let Split_date1 = Split_it1[0].split("-");
+    
+            let Split_time1 = Split_it1[1].split(":");
+    
+            let fullDate1 = `${Split_date1[0]}/${parseInt(Split_date1[1])+1}/${Split_date1[2]} ${Split_time1[0]}:${Split_time1[1]}`;
+    
+            let hourago1 = new Date(fullDate1);
+    
+            let time1 = await formatAMPM(hourago1)
+    
+             ival.new_drop_date = `${hourago1.getDate() > 9 ? hourago1.getDate() : `0${hourago1.getDate()}`}-${hourago1.getMonth()>9 ? hourago1.getMonth() : `0${hourago1.getMonth()}`}-${hourago1.getFullYear()} at ${time1}`
+    
+            } 
+    
+             ddd.push(ival);
+          });
+
+          
+
+          await Promise.all(waittt1);
+
+          console.log(ddd,"karan");
+
+          result[0].ActiveTrips = JSON.stringify(ddd);
+
         }else{
           result[0].ActiveTrips = JSON.stringify([])
         }
@@ -2071,16 +2186,29 @@ const StartandEndTrip =async(req,res,next) =>{
           `id DESC`
         )
 
-        if(BiddingTrip){
+        if(BiddingTrip.length>0){
 
           let dddd =  [] ;
-          let waittt1=await  BiddingTrip.map((ival,i)=>{
-               ival.activeindicator = false;
-               ival.activeindicator1 = false;
+          let waittt1=await  BiddingTrip.map(async(ival,i)=>{
+            ival.activeindicator = false;
+            ival.activeindicator1 = false;
+            let Split_it = ival.pickUp_date.split(" ");
 
-               dddd.push(ival)
-             })
-             await Promise.all(waittt1)
+            let Split_date = Split_it[0].split("-");
+
+            let Split_time = Split_it[1].split(":");
+
+            let fullDate = `${Split_date[0]}/${parseInt(Split_date[1])+1}/${Split_date[2]} ${Split_time[0]}:${Split_time[1]}`;
+
+            let hourago = new Date(fullDate);
+
+            let time = await formatAMPM(hourago)
+
+             ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${hourago.getMonth()>9 ? hourago.getMonth() : `0${hourago.getMonth()}`}-${hourago.getFullYear()} at ${time}`
+
+            dddd.push(ival)
+          })
+          await Promise.all(waittt1)
           result[0].BiddingTrip  = JSON.stringify(dddd);
           // result[0].BiddingTrip  = JSON.stringify(BiddingTrip)
         }else{
@@ -2089,9 +2217,7 @@ const StartandEndTrip =async(req,res,next) =>{
 
         if(WalletHistory){
 
-          // console.log(WalletHistory,"WalletHistoryWalletHistory");
-         
-          let arr =[]
+        let arr =[]
 
           let wait = await WalletHistory.map((ival,i)=>{
             
@@ -2102,12 +2228,8 @@ const StartandEndTrip =async(req,res,next) =>{
           
           await Promise.all(wait);
 
-          // console.log(result,"arrarrarr");
-          
            result[0].wallethistory = JSON.stringify(arr);
-          //  console.log(result,"resultresultresult");
-      //  log
-            // ;
+           
             res.status(200);
             res.send(result)
       }else{
@@ -2960,7 +3082,7 @@ const StartandEndTrip =async(req,res,next) =>{
 
       console.log(req.files)
 
-      let File = ["d_front","d_back","police_c"]
+      let File = ["d_front","d_back","police_c","driver_image1"]
 
       // console.log(req.files)
 
@@ -2986,6 +3108,12 @@ const StartandEndTrip =async(req,res,next) =>{
           delete body.police_verify
       }
 
+      if(ival=='driver_image1' && req.files.driver_image1 !== undefined){
+        body.driver_image = await UploadDocument1(req.files.driver_image1,body.vendor,true,body.driver_image1);
+      }else{
+          delete body.driver_image
+      }
+
      })
 
     //  await Promise.all(wait)
@@ -2993,6 +3121,7 @@ const StartandEndTrip =async(req,res,next) =>{
       delete body.d_front;
       delete body.d_back;
       delete body.police_c;
+      delete body.driver_image1
 
       // delete body.file1;
       // delete body.file2; 
@@ -3269,6 +3398,8 @@ const StartandEndTrip =async(req,res,next) =>{
         body.driving_license_back = await UploadDocument1(req.files.file2,body.vendor);
       }else if(ival=='file3' && req.files.file3){
         body.police_verify = await UploadDocument1(req.files.file3,body.vendor);
+      }else if(ival=='file4' && req.files.file4){
+        body.driver_image = await UploadDocument1(req.files.file4,body.vendor);
       }
     });
 
@@ -3277,6 +3408,7 @@ const StartandEndTrip =async(req,res,next) =>{
       delete body.file1;
       delete body.file2; 
       delete body.file3;
+      delete body.file4;
       delete body.file;
 
       // console.log(body,"1858");
@@ -3732,7 +3864,54 @@ const TripsJson = async(req,res,next)=>{
     //   1,
     //   1
     // )
-    let result = await NewTrips(id)
+    let result = await NewTrips(id);
+
+    // console.log(result,"3749");
+
+    if(result.length){
+      
+      let wait = await result.map(async(ival,i)=>{
+
+              let Split_it = ival.pickup_date.split(" ");
+  
+              let Split_date = Split_it[0].split("-");
+  
+              let Split_time = Split_it[1].split(":");
+  
+              let fullDate = `${Split_date[0]}/${parseInt(Split_date[1])+1}/${Split_date[2]} ${Split_time[0]}:${Split_time[1]}`;
+  
+              let hourago = new Date(fullDate);
+
+              let time = await formatAMPM(hourago)
+
+               ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${hourago.getMonth()>9 ? hourago.getMonth() : `0${hourago.getMonth()}`}-${hourago.getFullYear()} at ${time}`
+
+              // console.log(ival.new_pickup_date,time,"fullDate");
+
+              if(ival.trip_type != 'One Way'){
+                let Split_it1 = ival.pickup_date.split(" ");
+  
+                let Split_date1 = Split_it1[0].split("-");
+    
+                let Split_time1 = Split_it1[1].split(":");
+    
+                let fullDate1 = `${Split_date1[0]}/${parseInt(Split_date1[1])+1}/${Split_date1[2]} ${Split_time1[0]}:${Split_time1[1]}`;
+    
+                let hourago1 = new Date(fullDate1);
+  
+                let time1 = await formatAMPM(hourago1)
+  
+                 ival.new_drop_date = `${hourago1.getDate() > 9 ? hourago1.getDate() : `0${hourago1.getDate()}`}-${hourago1.getMonth()>9 ? hourago1.getMonth() : `0${hourago1.getMonth()}`}-${hourago1.getFullYear()} at ${time1}`
+              }
+
+      });
+      await Promise.all(wait)
+    }
+
+    console.log(result,"3749");
+
+
+
     if(result){
       res.status(200)
       res.send(result)
@@ -3744,6 +3923,19 @@ const TripsJson = async(req,res,next)=>{
     next(error);
   }
   
+  }
+
+  const formatAMPM=async(date)=> {
+          
+    var hours = date.getHours();
+    console.log(hours,"hours")
+    var minutes = date.getMinutes();
+    var ampm = hours >= 12 ? 'pm' : 'am';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    minutes = minutes < 10 ? '0'+minutes : minutes;
+    var strTime = hours + ':' + minutes + ' ' + ampm;
+    return strTime;
   }
 
   const APPregister = async(req,res,next)=>{

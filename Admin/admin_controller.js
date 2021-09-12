@@ -283,7 +283,7 @@ admin.messaging().send({
     id:'1',
     ad:"Your Profile Approved",
     subTitle:"Notify Sub",
-    routes:"DocumentUpload"
+    routes:"NewProfile"
   },
   android:{
     notification:{
@@ -755,7 +755,7 @@ const UpdateBiddingTrip = async(req,res,next)=>{
 }
 
 const AddBidTrips = async(req,res,next)=>{
-  console.log(req.body);
+       console.log(req.body);
   let vend = req.params.vendor_id;
 
   console.log(req.params)
@@ -3725,13 +3725,13 @@ try{
 
       // console.log(LocationLoop,"UserTripLocation");
 
-    let result = await Model.getAllData(
-    `tbl_trips.*,tbl_state.id as PickState,StateData.id as DropState,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
-    `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city,tbl_state,tbl_state as StateData`,
-    `tbl_state.id = tbl_city.state_id and tbl_trips.trip_status = 'active' and StateData.id = new_city.state_id  and tbl_user_web.id = tbl_trips.customer_id and tbl_trips.trip_assigned_to is null and tbl_trips.trip_status = 'active' and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id `,
-    1,
-    `tbl_trips.id DESC`
-    );
+let result = await Model.getAllData(
+`tbl_trips.*,tbl_state.id as PickState,StateData.id as DropState,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
+`tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city,tbl_state,tbl_state as StateData`,
+`tbl_state.id = tbl_city.state_id and tbl_trips.trip_status = 'active' and StateData.id = new_city.state_id  and tbl_user_web.id = tbl_trips.customer_id and tbl_trips.trip_assigned_to is null and tbl_trips.trip_status = 'active' and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id `,
+1,
+`tbl_trips.id DESC`
+);
 
      
 
@@ -3774,7 +3774,7 @@ try{
                ival.bidding_amount = jval.req_amount;
                ival.tbl_bidding_id = jval.id;
 
-               NewArray.push(ival)
+               NewArray.push(ival);
 
              }
           

@@ -871,6 +871,8 @@ const AddUser = async(req,res,next) =>{
         body.pancard_front = await UploadDocument1(req.files.pancard_front,body.userid, req.body.pancard_front=='null' ? false : true , req.body.pancard_front ? req.body.pancard_front : null);
         }else if(req.files.pancard_back !== undefined){
         body.pancard_back = await UploadDocument1(req.files.pancard_back,body.userid, req.body.pancard_back=='null' ? false : true , req.body.pancard_back ? req.body.pancard_back : null);
+        }else if(req.files.account_details !== undefined){
+          body.account_details = await UploadDocument1(req.files.account_details,body.userid,req.body.account_details=='null' ? false : true , req.body.account_details ? req.body.account_details : null )
         }
 
         console.log(body,"421");

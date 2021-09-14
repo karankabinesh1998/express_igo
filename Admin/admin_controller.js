@@ -19,9 +19,9 @@ const http = require('http')
 const https = require('https')
 // var CircularJSON = require('circular-json');
 
-const clients =[]
+const clients =[];
 
-const facts = []
+const facts = [];
 
 
 const  eventsHandler=(request, response, next) =>{
@@ -1542,10 +1542,10 @@ const StartandEndTrip =async(req,res,next) =>{
  
                 ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${hourago.getMonth()>9 ? hourago.getMonth() : `0${hourago.getMonth()}`}-${hourago.getFullYear()} at ${time}`
  
-               dddd.push(ival)
+                  dddd.push(ival)
              })
              await Promise.all(waittt1)
-             console.log(dddd);
+             
           result[0].BiddingTrip  = JSON.stringify(dddd);
         }else{
           result[0].BiddingTrip  = JSON.stringify([]);
@@ -1566,16 +1566,30 @@ const StartandEndTrip =async(req,res,next) =>{
 
     if(ActiveTrips){
       let ddd =  []
-       let waittt=await  ActiveTrips.map((ival,i)=>{
-            ival.activeindicator = false
-            ival.activeindicator1 = false;
-            ddd.push(ival)
-          })
-          await Promise.all(waittt)
+      let waittt1=await  BiddingTrip.map(async(ival,i)=>{
+        ival.activeindicator = false
+        ival.activeindicator1 = false;
+        let Split_it = ival.pickUp_date.split(" ");
+
+        let Split_date = Split_it[0].split("-");
+
+        let Split_time = Split_it[1].split(":");
+
+        let fullDate = `${Split_date[0]}/${parseInt(Split_date[1])+1}/${Split_date[2]} ${Split_time[0]}:${Split_time[1]}`;
+
+        let hourago = new Date(fullDate);
+
+        let time = await formatAMPM(hourago);
+
+         ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${hourago.getMonth()>9 ? hourago.getMonth() : `0${hourago.getMonth()}`}-${hourago.getFullYear()} at ${time}`
+
+         ddd.push(ival)
+      })
+      await Promise.all(waittt1)
           // console.log(ddd);
           result[0].ActiveTrips = JSON.stringify(ddd)
     }else{
-      result[0].ActiveTrips = JSON.stringify([])
+          result[0].ActiveTrips = JSON.stringify([])
     }
 
     let ActiveTrips1 = await Model.getAllData(
@@ -3382,7 +3396,7 @@ const StartandEndTrip =async(req,res,next) =>{
         1
       )
 
-      // console.log(body,"2757");
+      console.log(checkDriver,"2757");
       
       if(checkDriver.length==0){
 
@@ -3390,7 +3404,7 @@ const StartandEndTrip =async(req,res,next) =>{
 
       File = JSON.parse(File)
 
-      // console.log(req.files)
+     
 
     let wait = await File.map(async(ival,i)=>{
       
@@ -3438,7 +3452,7 @@ const StartandEndTrip =async(req,res,next) =>{
 
     }else{
 
-      res.send(false)
+           res.send(false)
           res.status(400)
 
     }
@@ -3931,7 +3945,7 @@ const TripsJson = async(req,res,next)=>{
   const formatAMPM=async(date)=> {
           
     var hours = date.getHours();
-    console.log(hours,"hours")
+    // console.log(hours,"hours")
     var minutes = date.getMinutes();
     var ampm = hours >= 12 ? 'pm' : 'am';
     hours = hours % 12;

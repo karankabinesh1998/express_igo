@@ -1463,254 +1463,336 @@ const StartandEndTrip =async(req,res,next) =>{
     }
   };
 
+  const RefreshApp=async()=>{
+
+  }
+
+  // const formatAMPM=(date)=> {
+          
+  //   var hours = date.getHours();
+  //   console.log(hours,"hours")
+  //   var minutes = date.getMinutes();
+  //   var ampm = hours >= 12 ? 'pm' : 'am';
+  //   hours = hours % 12;
+  //   hours = hours ? hours : 12; // the hour '0' should be '12'
+  //   minutes = minutes < 10 ? '0'+minutes : minutes;
+  //   var strTime = hours + ':' + minutes + ' ' + ampm;
+  //   return strTime;
+  // }
 
 
 
-  const RefreshApp = async (req, res, next) => {
+  // const RefreshApp = async (req, res, next) => {
     
-    // const body = req.body;
+  //   // const body = req.body;
 
-    let id = req.params.id
+  //   let id = req.params.id
     
-        console.log(id);
-    try {
+  //       console.log(id);
+  //   try {
 
-      let result = await Model.getAllData(
-        `*`,
-        `tbl_user_web`,
-        `id=${id}`,
-        1,
-        1
-      );
-      if(result){
+  //     let result = await Model.getAllData(
+  //       `*`,
+  //       `tbl_user_web`,
+  //       `id=${id}`,
+  //       1,
+  //       1
+  //     );
+  //     if(result){
 
-        let StateData = await Model.getAllData(
-            `id as value ,state as label`,
-          `tbl_state`,
-          `status=1`,
-          1,
-          1
-        )
-        // console.log(StateData,"STATE")
-        if(StateData){
-          result[0].state = JSON.stringify(StateData)
-        }else{
-          result[0].state = JSON.stringify([])
-        }
+  //       let StateData = await Model.getAllData(
+  //           `id as value ,state as label`,
+  //         `tbl_state`,
+  //         `status=1`,
+  //         1,
+  //         1
+  //       )
+  //       // console.log(StateData,"STATE")
+  //       if(StateData){
+  //         result[0].state = JSON.stringify(StateData)
+  //       }else{
+  //         result[0].state = JSON.stringify([])
+  //       }
 
-        let BiddingTrip = await Model.getAllData(
-          `*`,
-          `tbl_bidding_trips`,
-          `vendor_id = ${result[0].id} and status = 'approved'`,
-          1,
-          `id DESC`
-        );
+  //       let BiddingTrip = await Model.getAllData(
+  //         `*`,
+  //         `tbl_bidding_trips`,
+  //         `vendor_id = ${result[0].id} and status = 'approved'`,
+  //         1,
+  //         `id DESC`
+  //       );
 
-        let tbl_announcement = await Model.getAllData(
-          `*`,
-          `tbl_announcement`,
-          `status = 1`,
-          1,
-          `id DESC`
-        )
+  //       let tbl_announcement = await Model.getAllData(
+  //         `*`,
+  //         `tbl_announcement`,
+  //         `status = 1`,
+  //         1,
+  //         `id DESC`
+  //       )
         
-        if(tbl_announcement){
-          result[0].announcement = JSON.stringify(tbl_announcement)
+  //       if(tbl_announcement){
+  //         result[0].announcement = JSON.stringify(tbl_announcement)
 
-        }else{
-          result[0].announcement = JSON.stringify([])
-        }
+  //       }else{
+  //         result[0].announcement = JSON.stringify([])
+  //       }
 
-        // console.log(result[0].announcement,65365);
-        if(BiddingTrip){
+  //       // console.log(result[0].announcement,65365);
+  //       if(BiddingTrip){
 
-          let dddd =  []
-          let waittt1=await  BiddingTrip.map(async(ival,i)=>{
-               ival.activeindicator = false
-               ival.activeindicator1 = false;
-               let Split_it = ival.pickUp_date.split(" ");
+  //         let dddd =  []
+  //         let waittt1=await  BiddingTrip.map(async(ival,i)=>{
+  //              ival.activeindicator = false
+  //              ival.activeindicator1 = false;
+  //              let Split_it = ival.pickUp_date.split(" ");
   
-               let Split_date = Split_it[0].split("-");
+  //              let Split_date = Split_it[0].split("-");
    
-               let Split_time = Split_it[1].split(":");
+  //              let Split_time = Split_it[1].split(":");
    
-               let fullDate = `${Split_date[0]}/${parseInt(Split_date[1])+1}/${Split_date[2]} ${Split_time[0]}:${Split_time[1]}`;
+  //              let fullDate = `${Split_date[0]}/${parseInt(Split_date[1])+1}/${Split_date[2]} ${Split_time[0]}:${Split_time[1]}`;
    
-               let hourago = new Date(fullDate);
+  //              let hourago = new Date(fullDate);
  
-               let time = await formatAMPM(hourago)
+  //              let time = await formatAMPM(hourago)
  
-                ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${hourago.getMonth()>9 ? hourago.getMonth() : `0${hourago.getMonth()}`}-${hourago.getFullYear()} at ${time}`
+  //               ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${hourago.getMonth()>9 ? hourago.getMonth() : `0${hourago.getMonth()}`}-${hourago.getFullYear()} at ${time}`
  
-                  dddd.push(ival)
-             })
-             await Promise.all(waittt1)
+  //                 dddd.push(ival)
+  //            })
+  //            await Promise.all(waittt1)
              
-          result[0].BiddingTrip  = JSON.stringify(dddd);
-        }else{
-          result[0].BiddingTrip  = JSON.stringify([]);
-        }
+  //         result[0].BiddingTrip  = JSON.stringify(dddd);
+  //       }else{
+  //         result[0].BiddingTrip  = JSON.stringify([]);
+  //       }
 
-    let ActiveTrips = await Model.getAllData(
-    `tbl_active_trips.*,tbl_trips.trip_id as Id_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
-    tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
-    tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
+  //   let ActiveTrips = await Model.getAllData(
+  //   `tbl_active_trips.*,tbl_trips.trip_id as Id_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
+  //   tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
+  //   tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
 
-    `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
+  //   `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
 
-    `tbl_active_trips.vendor_id=${result[0].id} and tbl_active_trips.end = 0 and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
-    DropCity.id = tbl_trips.drop_location `,
-    1,
-    `tbl_active_trips.id`
-    )
+  //   `tbl_active_trips.vendor_id=${result[0].id} and tbl_active_trips.end = 0 and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
+  //   DropCity.id = tbl_trips.drop_location `,
+  //   1,
+  //   `tbl_active_trips.id`
+  //   )
 
-    if(ActiveTrips){
-      let ddd =  []
-      let waittt1=await  BiddingTrip.map(async(ival,i)=>{
-        ival.activeindicator = false
-        ival.activeindicator1 = false;
-        let Split_it = ival.pickUp_date.split(" ");
+  //   if(ActiveTrips){
+  //     let ddd =  []
+  //     let waittt1=await  BiddingTrip.map(async(ival,i)=>{
+  //       ival.activeindicator = false
+  //       ival.activeindicator1 = false;
+  //       let Split_it = ival.pickUp_date.split(" ");
 
-        let Split_date = Split_it[0].split("-");
+  //       let Split_date = Split_it[0].split("-");
 
-        let Split_time = Split_it[1].split(":");
+  //       let Split_time = Split_it[1].split(":");
 
-        let fullDate = `${Split_date[0]}/${parseInt(Split_date[1])+1}/${Split_date[2]} ${Split_time[0]}:${Split_time[1]}`;
+  //       let fullDate = `${Split_date[0]}/${parseInt(Split_date[1])+1}/${Split_date[2]} ${Split_time[0]}:${Split_time[1]}`;
 
-        let hourago = new Date(fullDate);
+  //       let hourago = new Date(fullDate);
 
-        let time = await formatAMPM(hourago);
+  //       let time = await formatAMPM(hourago)
 
-         ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${hourago.getMonth()>9 ? hourago.getMonth() : `0${hourago.getMonth()}`}-${hourago.getFullYear()} at ${time}`
+  //        ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${hourago.getMonth()>9 ? hourago.getMonth() : `0${hourago.getMonth()}`}-${hourago.getFullYear()} at ${time}`
 
-         ddd.push(ival)
-      })
-      await Promise.all(waittt1)
-          // console.log(ddd);
-          result[0].ActiveTrips = JSON.stringify(ddd)
-    }else{
-          result[0].ActiveTrips = JSON.stringify([])
-    }
+  //        ddd.push(ival)
+  //     })
+  //     await Promise.all(waittt1)
+  //         // console.log(ddd);
+  //         result[0].ActiveTrips = JSON.stringify(ddd)
+  //   }else{
+  //     result[0].ActiveTrips = JSON.stringify([])
+  //   }
 
-    let ActiveTrips1 = await Model.getAllData(
-      `tbl_active_trips.*,tbl_trips.trip_id as Id_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
-      tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
-      tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
+  //   let ActiveTrips1 = await Model.getAllData(
+  //     `tbl_active_trips.*,tbl_trips.trip_id as Id_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
+  //     tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
+  //     tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
       
-      `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
+  //     `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
       
-      `tbl_active_trips.vendor_id=${result[0].id} and tbl_active_trips.end = 1 and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
-      DropCity.id = tbl_trips.drop_location `,
-      1,
-      `tbl_active_trips.id`
-      )
+  //     `tbl_active_trips.vendor_id=${result[0].id} and tbl_active_trips.end = 1 and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
+  //     DropCity.id = tbl_trips.drop_location `,
+  //     1,
+  //     `tbl_active_trips.id`
+  //     )
       
-          if(ActiveTrips){
-            result[0].TripHistory = JSON.stringify(ActiveTrips1)
-          }else{
-            result[0].TripHistory = JSON.stringify([])
-          }
+  //         if(ActiveTrips){
+  //           result[0].TripHistory = JSON.stringify(ActiveTrips1)
+  //         }else{
+  //           result[0].TripHistory = JSON.stringify([])
+  //         }
 
 
-        let vendorDrivers = await Model.getAllData(
-          `*`,
-          `tbl_vendor_drivers`,
-          `vendor=${result[0].id}`,
-          1,
-          `id`
-        )
+  //       let vendorDrivers = await Model.getAllData(
+  //         `*`,
+  //         `tbl_vendor_drivers`,
+  //         `vendor=${result[0].id}`,
+  //         1,
+  //         `id`
+  //       )
 
-        if(vendorDrivers){
-          result[0].vendorDrivers = JSON.stringify(vendorDrivers)
-        }else{
-          result[0].vendorDrivers = JSON.stringify([])
-        }
+  //       if(vendorDrivers){
+  //         result[0].vendorDrivers = JSON.stringify(vendorDrivers)
+  //       }else{
+  //         result[0].vendorDrivers = JSON.stringify([])
+  //       }
 
-        let vendorCabs = await Model.getAllData(
-          `*`,
-          `tbl_vendor_cabs`,
-          `vendor=${result[0].id}`,
-          1,
-          `id`
-        )
+  //       let vendorCabs = await Model.getAllData(
+  //         `*`,
+  //         `tbl_vendor_cabs`,
+  //         `vendor=${result[0].id}`,
+  //         1,
+  //         `id`
+  //       )
 
-        if(vendorCabs){
-          result[0].vendorCabs = JSON.stringify(vendorCabs)
-        }else{
-          result[0].vendorCabs = JSON.stringify([])
-        }
+  //       if(vendorCabs){
+  //         result[0].vendorCabs = JSON.stringify(vendorCabs)
+  //       }else{
+  //         result[0].vendorCabs = JSON.stringify([])
+  //       }
 
-        let WalletHistory = await Model.getAllData(
-          `tbl_wallet_master_history.*`,
-          `tbl_user_web,tbl_wallet_master_history`,
-          `tbl_user_web.id = ${result[0].id} and tbl_wallet_master_history.user_id = tbl_user_web.id`,
-          `1`,
-          `tbl_wallet_master_history.id DESC`
-        )
+  //       let WalletHistory = await Model.getAllData(
+  //         `tbl_wallet_master_history.*`,
+  //         `tbl_user_web,tbl_wallet_master_history`,
+  //         `tbl_user_web.id = ${result[0].id} and tbl_wallet_master_history.user_id = tbl_user_web.id`,
+  //         `1`,
+  //         `tbl_wallet_master_history.id DESC`
+  //       )
 
-        let tbl_vendar_documents = await Model.getAllData(
-          `*`,
-          `tbl_vendar_documents`,
-          `userid=${result[0].id}`,
-          1,
-          1
-        )
-        if(tbl_vendar_documents){
+  //       let tbl_vendar_documents = await Model.getAllData(
+  //         `*`,
+  //         `tbl_vendar_documents`,
+  //         `userid=${result[0].id}`,
+  //         1,
+  //         1
+  //       )
+  //       if(tbl_vendar_documents){
 
           
-          result[0].Documentation = JSON.stringify(tbl_vendar_documents)
+  //         result[0].Documentation = JSON.stringify(tbl_vendar_documents)
 
-        }else{
+  //       }else{
 
-          result[0].Documentation = null
+  //         result[0].Documentation = null
 
-        }
+  //       }
         
-        if(WalletHistory){
+  //       if(WalletHistory){
          
-          let arr =[]
+  //         let arr =[]
 
-          let wait = await   WalletHistory.map((ival,i)=>{
+  //         let wait = await   WalletHistory.map((ival,i)=>{
             
-            arr.push([i+1 , ival.amount , ival.debited_credited,ival.reason,ival.created_At])
+  //           arr.push([i+1 , ival.amount , ival.debited_credited,ival.reason,ival.created_At])
 
-          })
+  //         })
 
           
-          await Promise.all(wait);
+  //         await Promise.all(wait);
           
-           result[0].wallethistory = JSON.stringify(arr);
+  //          result[0].wallethistory = JSON.stringify(arr);
 
-          //  console.log(result);
+  //         //  console.log(result);
        
-            res.send(result);
-            res.status(200);
-      }else{
+  //           res.send(result);
+  //           res.status(200);
+  //     }else{
 
-        result[0].wallethistory = null;
-        // console.log(result);
+  //       result[0].wallethistory = null;
+  //       // console.log(result);
     
-         res.send(result);
-         res.status(200);
+  //        res.send(result);
+  //        res.status(200);
 
-      }
-      }else{
-        res.send(false);
-        res.status(404)
-      }
+  //     }
+  //     }else{
+  //       res.send(false);
+  //       res.status(404)
+  //     }
      
 
 
-    } catch (error) {
-      //db end connection
-      // endConnection();
-      console.error(chalk.red(error));
-      res.status(500);
-      next(error);
-    }
-  };
+  //   } catch (error) {
+  //     //db end connection
+  //     // endConnection();
+  //     console.error(chalk.red(error));
+  //     res.status(500);
+  //     next(error);
+  //   }
+  // };
+
+  const getbeforedateandtimeFunction=async(Trips)=>{
+
+    let arr = []
+
+      if(Trips.length>0){
+
+        Trips.map(async(ival,i)=>{
+          
+   
+          let Split_it = ival.pickup_date.split(" ");
+
+          let Split_date = Split_it[0].split("-");
+
+          let Split_time = Split_it[1].split(":");
+
+          let fullDate = `${Split_date[0]}/${parseInt(Split_date[1])+1}/${Split_date[2]} ${Split_time[0]}:${Split_time[1]}`;
+          // console.log(Split_it);
+          let check = new Date(fullDate);
+           var hourago = new Date(check.getTime() - (1000*60*60)); 
+           let CurrentDate = new Date();
+           let timed = await formatAMPM(hourago);
+
+           ival.Will_visibleAt = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${hourago.getMonth()>9 ? hourago.getMonth() : `0${hourago.getMonth()}`}-${hourago.getFullYear()} at ${timed}`
+          
+             
+        //  console.log( CurrentDate.getDate() , hourago.getDate());
+
+          if(
+            CurrentDate.getFullYear()==hourago.getFullYear() &&
+            CurrentDate.getMonth()+1 == hourago.getMonth() &&
+            CurrentDate.getDate() >= hourago.getDate()  
+
+          ){
+
+            if( CurrentDate.getDate() == hourago.getDate() && CurrentDate.getHours() >= hourago.getHours() ){
+              ival.beforehour = true;
+            }else{
+              ival.beforehour = true;
+            }
+            
+            // ival.beforehour = true;
+
+          }else{
+
+            ival.beforehour = false;
 
 
+          }
+          
+
+
+
+
+          let timeDiff = hourago.getTime() - CurrentDate.getTime()
+
+             ival.Count_down = Math.floor( parseInt(timeDiff) / 10000); 
+
+            // console.log(ival.Count_down,"hello"); 
+
+          arr.push(ival)
+        })
+
+      // console.log(arr,"length")
+
+      return arr;
+      }
+}
 
 
   const BackGroundRefreshApp = async (req, res, next) => {
@@ -1731,10 +1813,10 @@ const StartandEndTrip =async(req,res,next) =>{
         1,
         1
       );
-      if(result){
+      if(result.length){
 
         let StateData = await Model.getAllData(
-            `id as value ,state as label`,
+          `id as value ,state as label`,
           `tbl_state`,
           `status=1`,
           1,
@@ -1857,10 +1939,11 @@ const StartandEndTrip =async(req,res,next) =>{
          ddd.push(ival);
       })
       await Promise.all(waittt1)
-          // console.log(ddd,"256898");
-          result[0].ActiveTrips = JSON.stringify(ddd)
+      let GetAct = await getbeforedateandtimeFunction(ActiveTrips)
+          console.log(GetAct,"256898");  
+          result[0].ActiveTrips = JSON.stringify(GetAct)
     }else{
-      result[0].ActiveTrips = JSON.stringify([])
+          result[0].ActiveTrips = JSON.stringify([])
     }
 
     let ActiveTrips1 = await Model.getAllData(
@@ -2141,7 +2224,10 @@ const StartandEndTrip =async(req,res,next) =>{
 
           console.log(ddd,"karan");
 
-          result[0].ActiveTrips = JSON.stringify(ddd);
+          let GetAct = await getbeforedateandtimeFunction(ActiveTrips)
+          console.log(GetAct,"256898");
+
+          result[0].ActiveTrips = JSON.stringify(GetAct);
 
         }else{
           result[0].ActiveTrips = JSON.stringify([])
@@ -3925,7 +4011,7 @@ const TripsJson = async(req,res,next)=>{
       await Promise.all(wait)
     }
 
-    console.log(result,"3749");
+    // console.log(result,"3749");
 
 
 

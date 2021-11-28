@@ -197,6 +197,8 @@ router.route('/DeleteCab/:id').get(Controller.DeleteCab) ;
 
 router.route('/events').get(Controller.eventsHandler);
 
+router.route('/payment').post(Controller.paymentMethod)
+
 
  module.exports = router;
 

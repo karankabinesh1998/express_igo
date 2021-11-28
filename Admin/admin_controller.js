@@ -4410,6 +4410,11 @@ const paymentMethod = async (req, res, next) => {
       key_secret: TESTRAZORPAY_SECRET,
     });
 
+    // const instance = new Razorpay({
+    //   key_id: RAZORPAY_KEY_ID,
+    //   key_secret: RAZORPAY_SECRET,
+    // });
+
     const options = {
       amount: parseInt(amount), // amount in smallest currency unit
       currency: "INR",

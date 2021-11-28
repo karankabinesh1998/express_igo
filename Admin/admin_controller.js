@@ -16,6 +16,7 @@ const wsServer = require('./webSocket');
 
 const Razorpay = require("razorpay");
 
+let crypto = require("crypto");
 
 const http = require('http')
 
@@ -4399,7 +4400,7 @@ const paymentMethod = async (req, res, next) => {
       1,
       1
     )
-      console.log(userDetail)
+      // console.log(userDetail)
     if(userDetail.length==0){
       res.send('no user found')
       res.status(404)
@@ -4425,25 +4426,12 @@ const paymentMethod = async (req, res, next) => {
 
     if (!order) return res.status(500).send("Some error occured");
 
-    const updateUserWallet = await Model.updateMaster(
-      `tbl_user_web`,
-      userDetail[0].id,
-      { wallet: parseInt(userDetail[0].wallet) + parseInt(body.amount) },
-    )
-    // console.log(updateUserWallet,"updateUserWallet")
-    if(!updateUserWallet){
-      return res.status(500).send("user wallet update failed");
-    }
-    const insertWalletHistory = await Model.addMaster(
-      `tbl_wallet_master_history`,
-      { amount : body.amount , debited_credited : 'credited' , reason : 'wallet amount' , user_id : userDetail[0].id }
-    )
-      // console.log(insertWalletHistory)
-    if(!insertWalletHistory){
-      return res.status(500).send("user wallet history insert failed");
-    }
+   
     console.log(order);
-    res.json(order);
+   
+    if(order){
+      res.json(order);
+    }
 
   } catch (error) {
     endConnection();
@@ -4453,6 +4441,79 @@ const paymentMethod = async (req, res, next) => {
   }
 }
 
+
+const paymentSuccessResponse = async(req,res,next)=>{
+  try {
+    // getting the details back from our font-end
+    const {
+        orderCreationId,
+        razorpayPaymentId,
+        razorpayOrderId,
+        razorpaySignature,
+        login_token,
+        amount
+    } = req.body;
+    console.log(req.body,"Success-body")
+    // Creating our own digest
+    // The format should be like this:
+    // digest = hmac_sha256(orderCreationId + "|" + razorpayPaymentId, secret);
+    const shasum = crypto.createHmac("sha256", TESTRAZORPAY_SECRET);
+
+    shasum.update(`${razorpayOrderId}|${razorpayPaymentId}`);
+
+    const digest = shasum.digest("hex");
+    console.log(digest,"==",razorpaySignature )
+    // comaparing our digest with the actual signature
+    if (digest !== razorpaySignature){
+        return res.status(400).json({ msg: "Transaction not legit!" });
+    }
+
+        const userDetail = await Model.getAllData(
+          `*`,
+          `tbl_user_web`,
+          `login_token='${login_token}' and status = 1`,
+          1,
+          1
+        );
+          // console.log(userDetail,"userDetail")
+        if(userDetail.length==0){
+          res.send('No user found')
+          res.status(500)
+        }
+
+        const updateUserWallet = await Model.updateMaster(
+          `tbl_user_web`,
+          userDetail[0].id,
+          { wallet: parseInt(userDetail[0].wallet) + parseInt(amount) },
+        )
+        // console.log(updateUserWallet,"updateUserWallet")
+        if(!updateUserWallet){
+          return res.status(500).send("user wallet update failed");
+        }
+        const insertWalletHistory = await Model.addMaster(
+          `tbl_wallet_master_history`,
+          { amount : amount , debited_credited : 'credited' , reason : 'wallet amount' , user_id : userDetail[0].id , order_id : orderCreationId }
+        )
+          // console.log(insertWalletHistory)
+        if(!insertWalletHistory){
+          return res.status(500).send("user wallet history insert failed");
+        }
+
+    // THE PAYMENT IS LEGIT & VERIFIED
+    // YOU CAN SAVE THE DETAILS IN YOUR DATABASE IF YOU WANT
+
+    if(insertWalletHistory){
+      res.json({
+        msg: "success",
+        orderId: razorpayOrderId,
+        paymentId: razorpayPaymentId,
+    });
+    }
+   
+} catch (error) {
+    res.status(500).send(error);
+}
+}
 
 const DeleteCab = async (req, res, next) => {
   let id = req.params.id;
@@ -4547,5 +4608,6 @@ module.exports = {
   FetchAnnounce,
   eventsHandler,
   BackGroundRefreshApp,
-  paymentMethod
+  paymentMethod,
+  paymentSuccessResponse
 }

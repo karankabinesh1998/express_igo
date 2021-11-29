@@ -200,7 +200,9 @@ router.route('/events').get(Controller.eventsHandler);
 
 router.route('/payment').post(Controller.paymentMethod)
 
-router.route('/payment/success').post(Controller.paymentSuccessResponse)
+router.route('/payment/success').post(Controller.paymentSuccessResponse);
+
+router.route('/.well-known/assetlinks.json').get(Controller.sendAppDeepLink);
 
 
  module.exports = router;

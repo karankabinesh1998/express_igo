@@ -4453,7 +4453,7 @@ const paymentSuccessResponse = async(req,res,next)=>{
         login_token,
         amount
     } = req.body;
-    console.log(req.body,"Success-body")
+    // console.log(req.body,"Success-body")
     // Creating our own digest
     // The format should be like this:
     // digest = hmac_sha256(orderCreationId + "|" + razorpayPaymentId, secret);
@@ -4462,7 +4462,7 @@ const paymentSuccessResponse = async(req,res,next)=>{
     shasum.update(`${razorpayOrderId}|${razorpayPaymentId}`);
 
     const digest = shasum.digest("hex");
-    console.log(digest,"==",razorpaySignature )
+    // console.log(digest,"==",razorpaySignature )
     // comaparing our digest with the actual signature
     if (digest !== razorpaySignature){
         return res.status(400).json({ msg: "Transaction not legit!" });
@@ -4515,6 +4515,21 @@ const paymentSuccessResponse = async(req,res,next)=>{
 }
 }
 
+const sendAppDeepLink=async(req,res,next)=>{
+
+    let jsonArray = [
+      {
+        relation:["delegate_permission/common.handle_all_urls"],
+        target:{
+          namespace:"android_app",
+          package_name:"com.r7zerocarbon",
+          sha256_cert_fingerprints:["A9:D7:C4:2E:5C:85:B5:F9:0C:37:DC:EC:F1:17:E2:16:2D:79:34:B0:95:C9:94:22:03:18:8C:58:DA:3E:53:2D"]
+        }
+      }
+    ];
+  res.json(jsonArray)
+}
+
 const DeleteCab = async (req, res, next) => {
   let id = req.params.id;
   try {
@@ -4563,6 +4578,7 @@ module.exports = {
   DeleteCab,
   getFreedom,
   updateMaster,
+  sendAppDeepLink,
   deleteMaster,
   Check_Db,
   AddVendarDocument,

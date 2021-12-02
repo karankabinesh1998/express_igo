@@ -52,7 +52,7 @@ router
   .route('/check')
   .get(Controller.Check_Db)
 
-router.route('/logout').get(Controller.logOutAdminUser)  
+router.route('/logout').put(Controller.logOutAdminUser)  
 
 router
   .route('/adduser/:tableName?/:id?/:editid?')

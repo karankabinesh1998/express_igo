@@ -547,46 +547,33 @@ const UpdateToken = async (req, res, next) => {
 }
 
 const LoginAdmin = async (req, res, next) => {
-
   try {
-
-    console.log(req.body);
-
     let body = req.body;
-
     let result = await Model.getAllData(
-      `*`,
+      `id,username,mobile,alternate_mobile,email_id,profile_dp,userType,address,login_status,token`,
       `tbl_user_web`,
       `email_id='${body.email_id}' and password = '${body.password}' and status = 1`,
       1,
       1
-    )
-
+    );
     if (result.length) {
-
-      let ChangeStatus = await Model.updateMaster(`tbl_user_web`, result[0].id, { login_status: 1 });
-
+      let loginToken = await randomString(10, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+      let ChangeStatus = await Model.updateMaster(`tbl_user_web`, result[0].id, { login_status: 1 , login_token : loginToken });
       if (ChangeStatus) {
         endConnection();
-
-        res.send(result)
-        res.status(200)
+        result[0].login_token = loginToken;
+        res.send(result);
+        res.status(200);
       }
-
-
     } else {
       res.send(false)
       res.status(302)
     }
-
-
-
   } catch (error) {
     res.status(500)
     console.log(chalk.red(error));
     next(error)
   }
-
 }
 
 

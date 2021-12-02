@@ -552,7 +552,7 @@ const LoginAdmin = async (req, res, next) => {
     let result = await Model.getAllData(
       `id,username,mobile,alternate_mobile,email_id,profile_dp,userType,address,login_status,token`,
       `tbl_user_web`,
-      `email_id='${body.email_id}' and password = '${body.password}' and status = 1`,
+      `email_id='${body.email_id}' and password = '${body.password}' and status = 1 and userType = 1`,
       1,
       1
     );
@@ -1085,13 +1085,26 @@ const TripsData = async (req, res, next) => {
   }
 };
 
-const getFreedom = async (req, res, next) => {
-  let body = req.body.value ? req.body.value : req.body;
-  // let device = req.body.device;
-  console.log(body);
-  try {
-    var result = [];
+const checkUserLogIn = async(login_token)=>{
+    const result = await Model.getAllData(
+      `*`,`tbl_user_web`,`login_token = '${login_token}' and status = 1`,1,1
+    );
+    if(result.length){
+      return true
+    }else{
+      return false
+    }
+}
 
+const getFreedomWithLoginCheck = async (req, res, next) => {
+  let body = req.body.value ? req.body.value : req.body;
+  try {
+    const checkLogin = await checkUserLogIn(req.headers.authorization);
+    if(checkLogin==false){
+      res.send('no user login found');
+      res.status(404);
+    }
+    var result = [];
     result = await Model.getAllData(
       body.select,
       body.tableName,
@@ -1103,11 +1116,30 @@ const getFreedom = async (req, res, next) => {
       endConnection();
       res.send(result);
     }
-
-
-
   } catch (error) {
-    //db end connection
+    endConnection();
+    console.error(chalk.red(error));
+    res.status(500);
+    next(error);
+  }
+};
+
+const getFreedom = async (req, res, next) => {
+  let body = req.body.value ? req.body.value : req.body;
+  try {
+    var result = [];
+    result = await Model.getAllData(
+      body.select,
+      body.tableName,
+      body.condition,
+      body.groupby,
+      body.orderby
+    );
+    if (result) {
+      endConnection();
+      res.send(result);
+    }
+  } catch (error) {
     endConnection();
     console.error(chalk.red(error));
     res.status(500);
@@ -1126,7 +1158,6 @@ const randomString = async (length, chars) => {
 
 
 const SendNotifyToUser = async (pickup_location, drop_location) => {
-  console.log(pickup_location, drop_location);
   try {
 
     let UserData = await Model.getAllData(
@@ -4612,5 +4643,6 @@ module.exports = {
   eventsHandler,
   BackGroundRefreshApp,
   paymentMethod,
+  getFreedomWithLoginCheck,
   paymentSuccessResponse
 }

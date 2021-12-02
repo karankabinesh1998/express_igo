@@ -82,7 +82,7 @@ router
 
 router
   .route("/getFullFreedom/getFreedom")
-  .put(corsOptionsDelegate,Controller.getFreedom)
+  .put(corsOptionsDelegate,Controller.getFreedomWithLoginCheck)
 
   router
   .route("/master/:tableName/:id?/:order?")

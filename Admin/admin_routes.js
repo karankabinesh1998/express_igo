@@ -1,13 +1,6 @@
 
-var express = require('express');
-const { Container } = require('winston');
-
-// const Model = require('../Model');
-
 const router = require("express").Router();
-
 var Controller = require('./admin_controller');
-
 var whitelist = [
   "localhost:3000",
   "localhost:3006",
@@ -19,143 +12,139 @@ var whitelist = [
   "www.igotaxy.in",
   "www.cp.igotaxy.in",
   "cp.igotaxy.in"
-   ];
-
+];
 const corsOptionsDelegate = (req, res, next) => {
-    try {
-      console.log(req.headers.origin,"HEADERS");
-      console.log(req.headers.referer,"ORIGINS");
-      if (req.headers.origin !== undefined) {
-        const splitReferer = req.headers.referer.split("/");
-        const splitOrgin = req.headers.origin.split("/");
-        const reqOrgin = splitOrgin[2];
-        const reqReferer = splitReferer[2];
-        console.log(splitReferer[2] + "->" + splitOrgin[2],"29th line ");
-        console.log( whitelist.indexOf(reqOrgin),whitelist.indexOf(reqReferer),"30th line")
-        if (
-          whitelist.indexOf(reqOrgin) !== -1 &&
-          whitelist.indexOf(reqReferer) !== -1
-        ) {
-          
-          next();
-        }
-      } else {
-        return res.status(400).json("Unauthorized Routes");
+  try {
+    console.log(req.headers.origin, "HEADERS");
+    console.log(req.headers.referer, "ORIGINS");
+    if (req.headers.origin !== undefined) {
+      const splitReferer = req.headers.referer.split("/");
+      const splitOrgin = req.headers.origin.split("/");
+      const reqOrgin = splitOrgin[2];
+      const reqReferer = splitReferer[2];
+      console.log(splitReferer[2] + "->" + splitOrgin[2], "29th line ");
+      console.log(whitelist.indexOf(reqOrgin), whitelist.indexOf(reqReferer), "30th line")
+      if (
+        whitelist.indexOf(reqOrgin) !== -1 &&
+        whitelist.indexOf(reqReferer) !== -1
+      ) {
+        next();
       }
-    } catch (error) {
-      return res.status(401).json({
-        status: 401,
-        message: "Invalid Request"
-      });
+    } else {
+      return res.status(400).json("Unauthorized Routes");
     }
-  };
+  } catch (error) {
+    return res.status(401).json({
+      status: 401,
+      message: "Invalid Request"
+    });
+  }
+};
 
-  // console.log(router.route("/login").post(corsOptionsDelegate, Controller.LoginAdmin));
-
-  router
+router
   .route("/login")
   .post(corsOptionsDelegate, Controller.LoginAdmin)
+router
+  .route('/filename/:filename?')
+  .get(Controller.DownloadImage)
 
+router
+  .route('/check')
+  .get(Controller.Check_Db)
 
-  router
- .route('/filename/:filename?')
- .get(Controller.DownloadImage)
+router.route('/logout').get(Controller.logOutAdminUser)  
 
- router
- .route('/check')
- .get(Controller.Check_Db)
-
-    router
-    .route('/adduser/:tableName?/:id?/:editid?')
-    .post(Controller.AddUser)
-    .put(Controller.UpdateUser)
-//  router.post('/login',Controller.LoginAdmin);
+router
+  .route('/adduser/:tableName?/:id?/:editid?')
+  .post(Controller.AddUser)
+  .put(Controller.UpdateUser)
 
 
 router.route('/AddBidTrips/:id?/:vendor_id?')
-.post(Controller.AddBidTrips)
-.put(Controller.UpdateBiddingTrip)
+  .post(Controller.AddBidTrips)
+  .put(Controller.UpdateBiddingTrip)
 
-router 
-.route('/UploadUserProfile/:id?')
-.post(Controller.UploadUserProfile)
+router
+  .route('/UploadUserProfile/:id?')
+  .post(Controller.UploadUserProfile)
 
 router
   .route("/getFullFreedom/getFreedom")
-  .put(corsOptionsDelegate,Controller.getFreedomWithLoginCheck)
+  .put(corsOptionsDelegate, Controller.getFreedomWithLoginCheck)
 
-  router
+
+router
   .route("/master/:tableName/:id?/:order?")
   .post(corsOptionsDelegate, Controller.addMaster)
- //.get(corsOptionsDelegate, cmsContent.getMasterValues)
+  //.get(corsOptionsDelegate, cmsContent.getMasterValues)
   .put(Controller.updateMaster)
   .delete(corsOptionsDelegate, Controller.deleteMaster);
 
-  router.route('/UpdateBiddingApproval/:tableName/:id?/:vend_id?').put(Controller.UpdateBiddingApproval)
+router.route('/UpdateBiddingApproval/:tableName/:id?/:vend_id?').put(Controller.UpdateBiddingApproval)
 
-  router
+router
   .route("/appmaster/:tableName/:id?/:order?")
   // .post(corsOptionsDelegate, cmsContent.addMaster)
- //.get(corsOptionsDelegate, cmsContent.getMasterValues)
+  //.get(corsOptionsDelegate, cmsContent.getMasterValues)
   .put(Controller.updateMasterApp)
 
-  router
- .route('/vendarfile/:filename/:name')
- .get(Controller.DownloadFile) 
+router
+  .route('/vendarfile/:filename/:name')
+  .get(Controller.DownloadFile)
 
- router 
-   .route('/AddUniqueValue/:tableName?')
-   .post(corsOptionsDelegate,Controller.AddUniqueValue)
+router
+  .route('/AddUniqueValue/:tableName?')
+  .post(corsOptionsDelegate, Controller.AddUniqueValue)
 
-   router 
-   .route('/AddUniqueValueCity/:tableName?')
-   .post(corsOptionsDelegate,Controller.AddUniqueValueCity)
+router
+  .route('/AddUniqueValueCity/:tableName?')
+  .post(corsOptionsDelegate, Controller.AddUniqueValueCity)
 
-   router
-     .route('/UpdateUniqueCity/:id')
-     .put(corsOptionsDelegate,Controller.UpdateUniqueCity)   
+router
+  .route('/UpdateUniqueCity/:id')
+  .put(corsOptionsDelegate, Controller.UpdateUniqueCity)
 
- router
-     .route('/UpdateVendarDocument/:tableName/:id')
-     .post(corsOptionsDelegate,Controller.UpdateVendarDocument)
+router
+  .route('/UpdateVendarDocument/:tableName/:id')
+  .post(corsOptionsDelegate, Controller.UpdateVendarDocument)
 
-  router
+router
   .route('/VendarDocument')
-  .post(corsOptionsDelegate,Controller.AddVendarDocument)
+  .post(corsOptionsDelegate, Controller.AddVendarDocument)
 
-  router.route('/AppDocumentUpload')
+router.route('/AppDocumentUpload')
   .post(Controller.AppDocumentUpload)
 
-  router
+router
   .route('/trips/:newcustomer/:id?')
-  .post(corsOptionsDelegate,Controller.AddTrips)
+  .post(corsOptionsDelegate, Controller.AddTrips)
 
-  router
+router
   .route('/AppLogin/:id?')
   .post(Controller.AppLogin)
   .get(Controller.RefreshApp)
 
-  router
+router
   .route('/BackGroundRefreshApp/:id?/:token?')
   .get(Controller.BackGroundRefreshApp)
 
-  router
+router
   .route('/gettrips')
   .get(Controller.TripsData)
 
-  router
+router
   .route('/TripsJson/:id?')
   .get(Controller.TripsJson)
 
-  router
+router
   .route('/TripsJsons')
   .get(Controller.TripsJsons)
 
-  router
+router
   .route('/profile/:filename')
   .get(Controller.UserProfile)
 
-  router.route('/APPregister').post(Controller.APPregister)
+router.route('/APPregister').post(Controller.APPregister)
 
 router.route('/notify/:token?').get(Controller.CheckoutNotify)
 router.route('/SendAssignedTripNotification').post(Controller.SendAssignedTripNotification)
@@ -182,19 +171,19 @@ router.route('/sendOtp').post(Controller.sendOtp)
 
 router.route('/CheckOtpandPassword').post(Controller.CheckOtpandPassword)
 
-router.route('/VendorUserLogout/:id').post(Controller.VendorUserLogout)  
+router.route('/VendorUserLogout/:id').post(Controller.VendorUserLogout)
 
-router.route('/CancelTrip/:id?').post(Controller.CancelTrip) 
+router.route('/CancelTrip/:id?').post(Controller.CancelTrip)
 
 router.route('/announce/:id?').post(Controller.Add_Announcement)
 
-router.route('/hello').post(Controller.OTPchecksadfsf)  
+router.route('/hello').post(Controller.OTPchecksadfsf)
 
 router.route('/FetchAnnounce').get(Controller.FetchAnnounce)
 
 router.route('/DeleteDriver/:id').get(Controller.DeleteDriver)
 
-router.route('/DeleteCab/:id').get(Controller.DeleteCab) ;
+router.route('/DeleteCab/:id').get(Controller.DeleteCab);
 
 router.route('/events').get(Controller.eventsHandler);
 
@@ -205,6 +194,5 @@ router.route('/payment/success').post(Controller.paymentSuccessResponse);
 router.route('/.well-known/assetlinks.json').get(Controller.sendAppDeepLink);
 
 
- module.exports = router;
+module.exports = router;
 
- 

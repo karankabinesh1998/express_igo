@@ -546,11 +546,35 @@ const UpdateToken = async (req, res, next) => {
   }
 }
 
+const logOutAdminUser = async (req, res, next) => {
+  try {
+    const checkLogin = await checkUserLogIn(req.headers.authorization)
+    if(checkLogin==false){
+      res.status(404);
+      res.send('no user login found');
+    }
+    const user = await Model.getAllData(
+      `*`,`tbl_user_web`,`login_token='${req.headers.authorization}' and status =1`,1,1
+    )
+    if(user.length){
+      let ChangeStatus = await Model.updateMaster(`tbl_user_web`, user[0].id, { login_status: 0 , login_token : null ,login_count : parseInt(user[0].login_count) + 1 });
+      if(ChangeStatus){
+        res.status(200)
+        res.send(true);
+      }
+    }
+  } catch (error) {
+    res.status(500)
+    console.log(chalk.red(error));
+    next(error)
+  }
+}
+
 const LoginAdmin = async (req, res, next) => {
   try {
     let body = req.body;
     let result = await Model.getAllData(
-      `id,username,mobile,alternate_mobile,email_id,profile_dp,userType,address,login_status,token`,
+      `id,username,mobile,alternate_mobile,email_id,profile_dp,userType,address,login_status,token,login_count`,
       `tbl_user_web`,
       `email_id='${body.email_id}' and password = '${body.password}' and status = 1 and userType = 1`,
       1,
@@ -558,7 +582,11 @@ const LoginAdmin = async (req, res, next) => {
     );
     if (result.length) {
       let loginToken = await randomString(10, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-      let ChangeStatus = await Model.updateMaster(`tbl_user_web`, result[0].id, { login_status: 1 , login_token : loginToken });
+      if(parseInt(result[0].login_count <=3)){
+        res.status(400);
+        res.send('maximum user logged in');
+      }
+      let ChangeStatus = await Model.updateMaster(`tbl_user_web`, result[0].id, { login_status: 1 , login_token : loginToken , login_count : parseInt(result[0].login_count) + 1 });
       if (ChangeStatus) {
         endConnection();
         result[0].login_token = loginToken;
@@ -4591,6 +4619,7 @@ const DeleteCab = async (req, res, next) => {
 
 module.exports = {
   LoginAdmin,
+  logOutAdminUser,
   DownloadImage,
   AddUser,
   DeleteCab,

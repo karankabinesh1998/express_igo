@@ -1,43 +1,27 @@
 const Model = require('../Model');
 const { endConnection } = require('../dataBaseConnection');
 const chalk = require("chalk");
-const { FACTOR_API_KEY , RAZORPAY_SECRET , RAZORPAY_KEY_ID , TESTRAZORPAY_KEY_ID  , TESTRAZORPAY_SECRET } = require('../Envreader');
+const { FACTOR_API_KEY, RAZORPAY_SECRET, RAZORPAY_KEY_ID, TESTRAZORPAY_KEY_ID, TESTRAZORPAY_SECRET } = require('../Envreader');
 const fs = require("fs");
-// const mv = require('mv');
-
 var admin = require("firebase-admin");
 const path = require('path')
-
 var serviceAccount = require("./igotaxy-firebase-adminsdk-2c5sg-2a09a1a5ee.json");
-
 const TwoFactor = new (require('2factor'))(FACTOR_API_KEY)
-
 const wsServer = require('./webSocket');
-
 const Razorpay = require("razorpay");
-
 let crypto = require("crypto");
-
 const http = require('http')
-
 const https = require('https')
-// var CircularJSON = require('circular-json');
-
 const clients = [];
-
 const facts = [];
 
-
 const eventsHandler = (request, response, next) => {
-
-  console.log("eventsHandler");
   const headers = {
     'Content-Type': 'text/event-stream',
     'Connection': 'keep-alive',
     'Cache-Control': 'no-cache'
   };
   response.writeHead(200, headers);
-
   const data = `data: ${JSON.stringify(facts)}\n\n`;
 
   response.write(data);
@@ -272,11 +256,7 @@ admin.initializeApp({
 
 const CheckoutNotify = async (req, res, next) => {
   try {
-
-
-
     const Token = req.params.token;
-    // console.log(Token);
     admin.messaging().send({
       token: Token,
       data: {
@@ -298,7 +278,6 @@ const CheckoutNotify = async (req, res, next) => {
         }
       }
     }).then((msg) => {
-      console.log(msg);
       res.send(msg)
       res.status(200)
     }).catch((err) => {
@@ -316,12 +295,7 @@ const CheckoutNotify = async (req, res, next) => {
 
 const SendAssignedTripNotification = async (req, res, next) => {
   try {
-
     let body = req.body;
-
-
-    // const Token = req.params.token;
-    // console.log(Token);
     admin.messaging().send({
       token: body.token,
       data: {
@@ -344,13 +318,11 @@ const SendAssignedTripNotification = async (req, res, next) => {
         }
       }
     }).then((msg) => {
-      console.log(msg);
       res.send(msg)
       res.status(200)
     }).catch((err) => {
       res.send(err)
       res.status(404)
-      console.log(err);
     })
   } catch (error) {
     console.log(error);
@@ -359,16 +331,11 @@ const SendAssignedTripNotification = async (req, res, next) => {
   }
 }
 
-// console.log(serviceAccount , "serviceAccount");
-
-
 
 const UploadDocument1 = async (a, b, editImage = false, OldFile = null) => {
 
   try {
-    console.log(OldFile, editImage, "OldFile")
     let image = a;
-    console.log(a, "data")
     let imagename = image.name.split(".");
     let sampleFile;
     let uploadPath = "";
@@ -376,7 +343,6 @@ const UploadDocument1 = async (a, b, editImage = false, OldFile = null) => {
     if (!a.files || Object.keys(a.files).length === 0) {
       // return res.status(400).send('No files were uploaded.');
     }
-
     // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
     sampleFile = a;
     Pathcheck = __dirname + '/Images/' + `/${b}/`
@@ -387,30 +353,21 @@ const UploadDocument1 = async (a, b, editImage = false, OldFile = null) => {
     fs.mkdir(Pathcheck, { recursive: true }, (err) => {
       if (err) throw err;
     });
-
-    //console.log(uploadPath)
-    // Use the mv() method to place the file somewhere on your server
     sampleFile.mv(uploadPath, function (err) {
       if (err)
         return err;
       console.log(uploadPath);
-      //res.send('File uploaded!');
-      // return uploadPath
     });
 
     if (editImage == true) {
-
       let removeFilePAth = __dirname + '/Images/' + `/${b}/` + OldFile;
-      console.log(removeFilePAth, "removeFilePAth");
       fs.unlink(removeFilePAth, function (err) {
         if (err) return console.log(err);
         console.log('file deleted successfully');
       });
 
     }
-
     return sendfile
-
   } catch (error) {
     console.log(error);
   }
@@ -419,9 +376,7 @@ const UploadDocument1 = async (a, b, editImage = false, OldFile = null) => {
 const UploadDocument = async (a, b, editImage = false, OldFile = null) => {
 
   try {
-    console.log(OldFile, editImage, "OldFile")
     let image = a.file;
-    console.log(a, "data")
     let imagename = image.name.split(".");
     let sampleFile;
     let uploadPath = "";
@@ -429,7 +384,6 @@ const UploadDocument = async (a, b, editImage = false, OldFile = null) => {
     if (!a.files || Object.keys(a.files).length === 0) {
       // return res.status(400).send('No files were uploaded.');
     }
-
     // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
     sampleFile = a.file;
     Pathcheck = __dirname + '/Images/' + `/${b}/`
@@ -440,29 +394,19 @@ const UploadDocument = async (a, b, editImage = false, OldFile = null) => {
     fs.mkdir(Pathcheck, { recursive: true }, (err) => {
       if (err) throw err;
     });
-
-    //console.log(uploadPath)
-    // Use the mv() method to place the file somewhere on your server
     sampleFile.mv(uploadPath, function (err) {
       if (err)
         return err;
-      //res.send('File uploaded!');
-      // return uploadPath
     });
 
     if (editImage == true) {
-
       let removeFilePAth = __dirname + '/Images/' + `/${b}/` + OldFile;
-      console.log(removeFilePAth, "removeFilePAth");
       fs.unlink(removeFilePAth, function (err) {
         if (err) return console.log(err);
         console.log('file deleted successfully');
       });
-
     }
-
     return sendfile
-
   } catch (error) {
     console.log(error);
   }
@@ -470,10 +414,7 @@ const UploadDocument = async (a, b, editImage = false, OldFile = null) => {
 
 const UploadImage = async (a, editImage = false, OldFile = null) => {
   try {
-    // console.log(a,"fkhdsjkh");
-    console.log(editImage, OldFile, "CheckOldFile");
     let image = a.profile_dp;
-    console.log(image, "data");
     let imagename = image.name.split(".");
     let sampleFile;
     let uploadPath = "";
@@ -481,14 +422,10 @@ const UploadImage = async (a, editImage = false, OldFile = null) => {
     if (!a.files || Object.keys(a.files).length === 0) {
       // return res.status(400).send('No files were uploaded.');
     }
-
     // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
     sampleFile = a.profile_dp;
     Pathcheck = __dirname + '/Images/UserProfile/'
     uploadPath = __dirname + '/Images/UserProfile/' + imagename[0] + `_${Date.now()}` + '.' + imagename[1];
-
-
-
 
     sendfile = imagename[0] + `_${Date.now()}` + '.' + imagename[1];
 
@@ -496,28 +433,19 @@ const UploadImage = async (a, editImage = false, OldFile = null) => {
       if (err) throw err;
     });
 
-    //console.log(uploadPath)
-    // Use the mv() method to place the file somewhere on your server
     sampleFile.mv(uploadPath, function (err) {
       if (err)
         return err;
-      //res.send('File uploaded!');
-      // return uploadPath
     });
 
     if (editImage == true) {
-
       let removeFilePAth = __dirname + '/Images/UserProfile/' + OldFile;
-      console.log(removeFilePAth, "removeFilePAth");
       fs.unlink(removeFilePAth, function (err) {
         if (err) return console.log(err);
         console.log('file deleted successfully');
       });
-
     }
-
     return sendfile
-
   } catch (error) {
     console.log(error);
   }
@@ -527,18 +455,12 @@ const UpdateToken = async (req, res, next) => {
   let body = req.body;
   let id = req.params.id;
   try {
-
     let ChangeStatus = await Model.updateMaster(`tbl_user_web`, id, body);
-
     if (ChangeStatus) {
-
-      console.log(ChangeStatus, "Changestatus");
       endConnection();
-
       res.send(result)
       res.status(200)
     }
-
   } catch (error) {
     res.status(500)
     console.log(chalk.red(error));
@@ -549,16 +471,16 @@ const UpdateToken = async (req, res, next) => {
 const logOutAdminUser = async (req, res, next) => {
   try {
     const checkLogin = await checkUserLogIn(req.headers.authorization)
-    if(checkLogin==false){
+    if (checkLogin == false) {
       res.status(404);
       res.send('no user login found');
     }
     const user = await Model.getAllData(
-      `*`,`tbl_user_web`,`login_token='${req.headers.authorization}' and status =1`,1,1
+      `*`, `tbl_user_web`, `login_token='${req.headers.authorization}' and status =1`, 1, 1
     )
-    if(user.length){
-      let ChangeStatus = await Model.updateMaster(`tbl_user_web`, user[0].id, { login_status: 0 , login_token : null ,login_count : parseInt(user[0].login_count) + 1 });
-      if(ChangeStatus){
+    if (user.length) {
+      let ChangeStatus = await Model.updateMaster(`tbl_user_web`, user[0].id, { login_status: 0, login_token: null, login_count: parseInt(user[0].login_count) + 1 });
+      if (ChangeStatus) {
         res.status(200)
         res.send(true);
       }
@@ -582,11 +504,11 @@ const LoginAdmin = async (req, res, next) => {
     );
     if (result.length) {
       let loginToken = await randomString(10, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-      if(parseInt(result[0].login_count <=3)){
+      if (parseInt(result[0].login_count <= 3)) {
         res.status(400);
         res.send('maximum user logged in');
       }
-      let ChangeStatus = await Model.updateMaster(`tbl_user_web`, result[0].id, { login_status: 1 , login_token : loginToken , login_count : parseInt(result[0].login_count) + 1 });
+      let ChangeStatus = await Model.updateMaster(`tbl_user_web`, result[0].id, { login_status: 1, login_token: loginToken, login_count: parseInt(result[0].login_count) + 1 });
       if (ChangeStatus) {
         endConnection();
         result[0].login_token = loginToken;
@@ -608,28 +530,19 @@ const LoginAdmin = async (req, res, next) => {
 
 const DownloadImage = async (req, res, next) => {
   let body = req.params.filename;
-
   try {
-
-
     let uploadPath = __dirname + '/Images/' + `${body}`;
-
-
-    console.log(uploadPath)
     res.sendFile(uploadPath)
-
   } catch (error) {
     console.error(chalk.red(error));
     res.status(500);
     next(error);
   }
-
 }
 
 
 const Check_Db = async (req, res, next) => {
   try {
-
     const checkemail = await Model.getAllData(
       `*`,
       `tbl_user_web`,
@@ -637,9 +550,7 @@ const Check_Db = async (req, res, next) => {
       1,
       1
     )
-
     res.send(checkemail)
-
   } catch (error) {
     console.error(chalk.red(error));
     res.status(500);
@@ -652,9 +563,7 @@ const addMaster = async (req, res, next) => {
   const tableName = req.params.tableName;
   const id = req.params.id;
   const body = req.body;
-  console.log(body)
   try {
-
     const GetUserDeatils = await Model.getAllData(
       `*`,
       `tbl_user_web`,
@@ -663,33 +572,14 @@ const addMaster = async (req, res, next) => {
       1
     )
     if (GetUserDeatils) {
-
-      // let debited_credited = body.debited_credited;
-      // console.log(debited_credited,"debited_credited");
       let wallet = GetUserDeatils[0].wallet == null ? 0 : GetUserDeatils[0].wallet;
-
-      console.log(id, "wallet");
-
-
-      console.log(parseInt(wallet) + parseInt(body.amount), "kkk");
       if (body.debited_credited == "credited") {
-
-        console.log(parseInt(wallet) + parseInt(body.amount), "2545465");
-
         wallet = parseInt(wallet) + parseInt(body.amount)
         body.reason = 'recharge';
-
       } else {
-
         wallet = parseInt(wallet) - parseInt(body.amount)
         body.reason = 'penalty / wrong payment'
-
       }
-
-
-
-      console.log(wallet, "wallet2");
-
       const result = await Model.updateMaster(
         `tbl_user_web`,
         req.body.user_id,
@@ -697,13 +587,8 @@ const addMaster = async (req, res, next) => {
         columname = "id"
       );
       if (result) {
-
         const result1 = await Model.addMaster(tableName, body);
-        console.log(result, "onupdate");
-        console.log(result1, 685);
         if (result1) {
-
-
           const GetUserDeatils1 = await Model.getAllData(
             `*`,
             `tbl_user_web`,
@@ -711,28 +596,15 @@ const addMaster = async (req, res, next) => {
             1,
             1
           );
-
           if (GetUserDeatils1) {
             res.send(GetUserDeatils1);
             res.status(200);
-
           }
         }
-
       }
-
-
     }
-
-
-
-
-
-    //db end connection
     endConnection();
-
   } catch (error) {
-    //db end connection
     endConnection();
     console.error(chalk.red(error));
     res.status(500);
@@ -745,24 +617,15 @@ const UpdateBiddingTrip = async (req, res, next) => {
   let vendor_id = req.params.vendor_id;
   let body = req.body;
   try {
-
     let ChangeStatus = await Model.updateMaster(`tbl_bidding_trips`, id, body);
-    console.log(ChangeStatus);
-
     if (ChangeStatus) {
-
       let result = await NewTrips(vendor_id);
-
       if (result) {
         res.send(result)
         res.status(200)
       }
-
     }
-
-
   } catch (error) {
-    //db end connection
     endConnection();
     console.error(chalk.red(error));
     res.status(500);
@@ -771,38 +634,17 @@ const UpdateBiddingTrip = async (req, res, next) => {
 }
 
 const AddBidTrips = async (req, res, next) => {
-  console.log(req.body);
   let vend = req.params.vendor_id;
-
-  console.log(req.params)
   try {
-
     let addData = await Model.addMaster(`tbl_bidding_trips`, req.body)
-
     if (addData) {
-
-      // let result = await Model.getAllData(
-      //   `*`,
-      //   `tbl_bidding_trips`,
-      //   `vendor_id=${req.body.vendor_id}`,
-      //   1,
-      //   `id DESC`
-      // )
-
       let result = await NewTrips(vend);
-
-
       if (result.length) {
-
-        console.log(result);
         res.send(result)
         res.status(200)
       }
-
     }
-
   } catch (error) {
-    //db end connection
     endConnection();
     console.error(chalk.red(error));
     res.status(500);
@@ -813,29 +655,20 @@ const AddBidTrips = async (req, res, next) => {
 const AddUser = async (req, res, next) => {
   const tableName = `tbl_user_web`;
   const body = req.body;
-  console.log(req.files);
   try {
-
     const data = await UploadImage(req.files)
-
-    console.log(data, "succeess")
-
     if (data !== undefined) {
       body.profile_dp = data;
     } else {
       body.profile_dp = null;
     }
-
-    console.log(body)
-
     const checkemail = await Model.getAllData(
       `email_id,mobile`,
       `${tableName}`,
-      `email_id = '${body.email_id}' or mobile = '${body.mobile}' and status = 1 `,
+      `email_id = '${body.email_id}' or mobile = '${body.mobile}' and status = 1`,
       1,
       1
     )
-    console.log(checkemail)
     if (checkemail.length) {
       let data = false;
       res.send(data)
@@ -844,15 +677,9 @@ const AddUser = async (req, res, next) => {
       if (result) {
         endConnection();
         result.profile_pic = data;
-        // console.log(result);
         res.send(result);
       }
-
-
     }
-    //res.send("success")
-    //  endConnection();
-
   } catch (error) {
     endConnection();
     console.log(chalk.red(error));
@@ -864,9 +691,6 @@ const AddUser = async (req, res, next) => {
 const AppDocumentUpload = async (req, res, next) => {
   const body = req.body;
   try {
-    console.log(req.body, "AppDocumentUpload");
-    console.log(req.files, "Files");
-    console.log(req.files.aadhar_front, "aadhar_front")
     let CheckDoc = await Model.getAllData(
       `*`,
       `tbl_vendar_documents`,
@@ -874,7 +698,6 @@ const AppDocumentUpload = async (req, res, next) => {
       1,
       1
     );
-
     if (req.files.aadhar_front !== undefined) {
       body.aadhar_front = await UploadDocument1(req.files.aadhar_front, body.userid, req.body.aadhar_front == 'null' ? false : true, req.body.aadhar_front ? req.body.aadhar_front : null);
     } else if (req.files.aadhar_back !== undefined) {
@@ -891,10 +714,7 @@ const AppDocumentUpload = async (req, res, next) => {
       body.account_details = await UploadDocument1(req.files.account_details, body.userid, req.body.account_details == 'null' ? false : true, req.body.account_details ? req.body.account_details : null)
     }
 
-    console.log(body, "421");
-
     if (CheckDoc.length) {
-
       const result = await Model.updateMaster(
         `tbl_vendar_documents`,
         CheckDoc[0].id,
@@ -902,7 +722,6 @@ const AppDocumentUpload = async (req, res, next) => {
         columname = "id"
       );
       if (result) {
-
         let CheckDoc1 = await Model.getAllData(
           `*`,
           `tbl_vendar_documents`,
@@ -911,23 +730,13 @@ const AppDocumentUpload = async (req, res, next) => {
           1
         );
         if (CheckDoc1) {
-
-          console.log(CheckDoc1, "updateMaster");
           res.status(200);
           res.send(CheckDoc1);
         }
-
-
       }
-
-
     } else {
-
       const result = await Model.addMaster(`tbl_vendar_documents`, body);
       if (result) {
-
-        // result.body = body;
-
         let CheckDoc1 = await Model.getAllData(
           `*`,
           `tbl_vendar_documents`,
@@ -936,23 +745,12 @@ const AppDocumentUpload = async (req, res, next) => {
           1
         );
         if (CheckDoc1) {
-
-          console.log(CheckDoc1, "addMaster");
           res.status(200);
           res.send(CheckDoc1);
         }
-
-        // console.log(result,"updateMaster");
-        // res.send(result);
-        // res.status(200)
-
       }
 
     }
-
-
-
-
   } catch (error) {
     endConnection();
     console.log(chalk.red(error));
@@ -967,115 +765,71 @@ const AddVendarDocument = async (req, res, next) => {
   const body = req.body;
   const Files = req.files;
   try {
-    console.log(body)
-
-    console.log(req.files)
-
     if (Files[body.driving_licence_front] == null) {
-
       body.driving_licence_front = null;
-
     } else {
-
       Files[body.driving_licence_front] = { file: Files[body.driving_licence_front] }
-
       body.driving_licence_front = await UploadDocument(Files[body.driving_licence_front], body.userid);
-
       if (body.driving_licence_front == undefined) {
         body.driving_licence_front = null
       }
-
     }
-
     if (Files[body.driving_licence_back] == null) {
-
       body.driving_licence_back = null;
-
     } else {
       Files[body.driving_licence_back] = { file: Files[body.driving_licence_back] }
-
       body.driving_licence_back = await UploadDocument(Files[body.driving_licence_back], body.userid);
-
       if (body.driving_licence_back === undefined) {
         body.driving_licence_back = null;
       }
     }
 
     if (Files[body.aadhar_front] == null) {
-
       body.aadhar_front = null;
-
     } else {
       Files[body.aadhar_front] = { file: Files[body.aadhar_front] }
-
       body.aadhar_front = await UploadDocument(Files[body.aadhar_front], body.userid);
-
       if (body.aadhar_front === undefined) {
         body.aadhar_front = null;
       }
     }
 
     if (Files[body.aadhar_back] == null) {
-
       body.aadhar_back = null;
-
     } else {
-
       Files[body.aadhar_back] = { file: Files[body.aadhar_back] }
       body.aadhar_back = await UploadDocument(Files[body.aadhar_back], body.userid);
-
       if (body.aadhar_back == undefined) {
         body.aadhar_back = null
       }
-
     }
 
-
     if (Files[body.pancard_front] == null) {
-
       body.pancard_front = null;
-
     } else {
-
       Files[body.pancard_front] = { file: Files[body.pancard_front] }
       body.pancard_front = await UploadDocument(Files[body.pancard_front], body.userid);
-
       if (body.pancard_front == undefined) {
         body.pancard_front = null
       }
-
     }
 
-
     if (Files[body.pancard_back] == null) {
-
       body.pancard_back = null;
-
     } else {
-
       Files[body.pancard_back] = { file: Files[body.pancard_back] }
       body.pancard_back = await UploadDocument(Files[body.pancard_back], body.userid);
 
       if (body.pancard_back == undefined) {
         body.pancard_back = null
       }
-
     }
-
-    console.log(body)
-
-
     const result = await Model.addMaster(`tbl_vendar_documents`, body);
     if (result) {
-
       result.body = body;
-
       res.send(result);
-
     }
     endConnection();
-    //  res.send("Success")
-
   } catch (error) {
     endConnection();
     console.error(chalk.red(error));
@@ -1084,11 +838,8 @@ const AddVendarDocument = async (req, res, next) => {
   }
 }
 
-
 const TripsData = async (req, res, next) => {
-
   try {
-
     let result = await Model.getAllData(
       `tbl_trips.*,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
       `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city`,
@@ -1096,16 +847,11 @@ const TripsData = async (req, res, next) => {
       1,
       `tbl_trips.id DESC`
     );
-
     if (result) {
       endConnection();
       res.send(result);
     }
-
-
-
   } catch (error) {
-    //db end connection
     endConnection();
     console.error(chalk.red(error));
     res.status(500);
@@ -1113,22 +859,22 @@ const TripsData = async (req, res, next) => {
   }
 };
 
-const checkUserLogIn = async(login_token)=>{
-    const result = await Model.getAllData(
-      `*`,`tbl_user_web`,`login_token = '${login_token}' and status = 1`,1,1
-    );
-    if(result.length){
-      return true
-    }else{
-      return false
-    }
+const checkUserLogIn = async (login_token) => {
+  const result = await Model.getAllData(
+    `*`, `tbl_user_web`, `login_token = '${login_token}' and status = 1`, 1, 1
+  );
+  if (result.length) {
+    return true
+  } else {
+    return false
+  }
 }
 
 const getFreedomWithLoginCheck = async (req, res, next) => {
   let body = req.body.value ? req.body.value : req.body;
   try {
     const checkLogin = await checkUserLogIn(req.headers.authorization);
-    if(checkLogin==false){
+    if (checkLogin == false) {
       res.send('no user login found');
       res.status(404);
     }
@@ -1182,12 +928,8 @@ const randomString = async (length, chars) => {
   return result;
 }
 
-
-
-
 const SendNotifyToUser = async (pickup_location, drop_location) => {
   try {
-
     let UserData = await Model.getAllData(
       `token,travel_location`,
       `tbl_user_web`,
@@ -1195,7 +937,6 @@ const SendNotifyToUser = async (pickup_location, drop_location) => {
       1,
       1
     );
-
     let locationCheck = await Model.getAllData(
       `tbl_city.state_id as pick_state,DropCity.state_id as drop_state`,
       `tbl_city,tbl_city as DropCity`,
@@ -1203,26 +944,14 @@ const SendNotifyToUser = async (pickup_location, drop_location) => {
       1,
       1
     )
-
-    console.log(locationCheck, 1085);
-
     if (UserData && locationCheck.length) {
-
-      console.log(UserData, 1089);
-
       let wait = await UserData.map(async (ival, i) => {
-
         let LocationData = ival.travel_location !== null ? JSON.parse(ival.travel_location) : []
 
         if (LocationData.length) {
-
           LocationData.map((jval, j) => {
 
-            console.log(jval, locationCheck[0].pick_state, "CHECKING");
-
             if (jval == locationCheck[0].pick_state && jval == locationCheck[0].drop_state) {
-
-
               admin.messaging().send({
                 token: ival.token,
                 data: {
@@ -1257,12 +986,9 @@ const SendNotifyToUser = async (pickup_location, drop_location) => {
                 return true
               }
             }
-
           })
-
         }
       })
-
       await Promise(wait);
     }
 
@@ -1272,31 +998,17 @@ const SendNotifyToUser = async (pickup_location, drop_location) => {
 }
 
 
-
-
-
-
-
 // SendNotifyToUser(1024,1029)
 
 const StartandEndTrip = async (req, res, next) => {
-
   let id = req.params.id;
-
-  // let id 
-
-  console.log(req.body, id, "1166");
-
   let body = req.body;
-
   try {
-
     let UpdateActive = await Model.updateMaster(
       `tbl_active_trips`,
       id,
       body
     )
-
     if (UpdateActive) {
       let result12 = []
       let result = await Model.getAllData(
@@ -1306,24 +1018,13 @@ const StartandEndTrip = async (req, res, next) => {
         1,
         1
       )
-
-      console.log(result, "1188");
-
       if (result.length) {
-
-
-
-
-
         if (result[0].end == 1) {
-
           let ChangeTripStatus = await Model.updateMaster(
             `tbl_trips`,
             result[0].trip_id,
             { trip_status: "completed" }
           )
-          console.log(ChangeTripStatus, "1203");
-
           let ChangeTripStatus1 = await Model.updateMaster(
             `tbl_active_trips`,
             result[0].trip_id,
@@ -1331,22 +1032,7 @@ const StartandEndTrip = async (req, res, next) => {
             "trip_id"
           )
 
-          console.log(ChangeTripStatus1, "ChangeTripStatus");
-
           if (ChangeTripStatus && ChangeTripStatus1) {
-
-
-
-
-
-            // let result1 = await Model.getAllData(
-            //   `start,end,trip_id`,
-            //   `tbl_active_trips`,
-            //   `vendor_id = ${ival.vendor_id}`,
-            //   1,
-            //   1
-            // )
-
             let ActiveTrips23 = await Model.getAllData(
               `tbl_active_trips.*,tbl_trips.trip_id as T_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
                   tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
@@ -1359,151 +1045,74 @@ const StartandEndTrip = async (req, res, next) => {
               1,
               `tbl_active_trips.id`
             )
-
-
-
             if (ActiveTrips23) {
               res.send(ActiveTrips23)
               res.status(200)
             }
-
-
-
-
           } else {
             res.send(false)
             res.status(400)
           }
-
         } else {
-
-          console.log("start going");
-
-
-
-
-
           res.send(true)
           res.status(200)
-
-
-
-
-
         }
-
-
-
       } else {
-
         res.send(false)
         res.status(400)
-
       }
-
     }
-
   } catch (error) {
     console.log(error);
+    res.status(500)
+    res.send(error)
   }
-
 }
 
 
 const AddTrips = async (req, res, next) => {
   const newcustomer = req.params.newcustomer;
   let body = req.body;
-  console.log(body);
-
   try {
-
     if (newcustomer == 0) {
-
       body.trip_id = await randomString(10, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-
       const result = await Model.addMaster(`tbl_trips`, body);
 
       if (result) {
-        console.log(result);
-
-
-
         let getData = await Model.getAllData(`*`, `tbl_trips`, `id=${result.insertId}`, 1, 1)
-
         if (getData) {
-
           let SendNotifyToUser1 = await SendNotifyToUser(body.pickup_location, body.drop_location);
-
           if (getData) {
-
             res.send(getData)
             res.status(200);
-
           }
-
-
         }
       }
     } else if (newcustomer == 1) {
-
       let customer1 = JSON.parse(body.customer);
-
       let customer = customer1[0]
-
-      console.log(customer);
-
       customer.status = 1;
       customer.userType = 4;
-
       let AddNewCustomer = await Model.addMaster(`tbl_user_web`, customer);
 
       if (AddNewCustomer) {
-
         delete body.customer;
-
         body.customer_id = AddNewCustomer.insertId;
-
         body.trip_id = await randomString(10, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-
-        console.log(body, "527");
-
         const result1 = await Model.addMaster(`tbl_trips`, body);
 
         if (result1) {
-
-          console.log(result1, "533");
-
           let getData1 = await Model.getAllData(`*`, `tbl_trips`, `id=${result1.insertId}`, 1, 1);
-
           let SendNotifyToUser1 = await SendNotifyToUser(body.pickup_location, body.drop_location);
 
           if (getData1) {
-
-            console.log(getData1, "539");
-
-
-
             res.send(getData1)
             res.status(200);
           }
         }
-
-
-
       }
-
-
     }
-
-
-
-
-
-
-
   } catch (error) {
-    //db end connection
-    // endConnection();
     console.error(chalk.red(error));
     res.status(500);
     next(error);
@@ -1514,291 +1123,20 @@ const RefreshApp = async () => {
 
 }
 
-// const formatAMPM=(date)=> {
-
-//   var hours = date.getHours();
-//   console.log(hours,"hours")
-//   var minutes = date.getMinutes();
-//   var ampm = hours >= 12 ? 'pm' : 'am';
-//   hours = hours % 12;
-//   hours = hours ? hours : 12; // the hour '0' should be '12'
-//   minutes = minutes < 10 ? '0'+minutes : minutes;
-//   var strTime = hours + ':' + minutes + ' ' + ampm;
-//   return strTime;
-// }
-
-
-
-// const RefreshApp = async (req, res, next) => {
-
-//   // const body = req.body;
-
-//   let id = req.params.id
-
-//       console.log(id);
-//   try {
-
-//     let result = await Model.getAllData(
-//       `*`,
-//       `tbl_user_web`,
-//       `id=${id}`,
-//       1,
-//       1
-//     );
-//     if(result){
-
-//       let StateData = await Model.getAllData(
-//           `id as value ,state as label`,
-//         `tbl_state`,
-//         `status=1`,
-//         1,
-//         1
-//       )
-//       // console.log(StateData,"STATE")
-//       if(StateData){
-//         result[0].state = JSON.stringify(StateData)
-//       }else{
-//         result[0].state = JSON.stringify([])
-//       }
-
-//       let BiddingTrip = await Model.getAllData(
-//         `*`,
-//         `tbl_bidding_trips`,
-//         `vendor_id = ${result[0].id} and status = 'approved'`,
-//         1,
-//         `id DESC`
-//       );
-
-//       let tbl_announcement = await Model.getAllData(
-//         `*`,
-//         `tbl_announcement`,
-//         `status = 1`,
-//         1,
-//         `id DESC`
-//       )
-
-//       if(tbl_announcement){
-//         result[0].announcement = JSON.stringify(tbl_announcement)
-
-//       }else{
-//         result[0].announcement = JSON.stringify([])
-//       }
-
-//       // console.log(result[0].announcement,65365);
-//       if(BiddingTrip){
-
-//         let dddd =  []
-//         let waittt1=await  BiddingTrip.map(async(ival,i)=>{
-//              ival.activeindicator = false
-//              ival.activeindicator1 = false;
-//              let Split_it = ival.pickUp_date.split(" ");
-
-//              let Split_date = Split_it[0].split("-");
-
-//              let Split_time = Split_it[1].split(":");
-
-//              let fullDate = `${Split_date[0]}/${parseInt(Split_date[1])+1}/${Split_date[2]} ${Split_time[0]}:${Split_time[1]}`;
-
-//              let hourago = new Date(fullDate);
-
-//              let time = await formatAMPM(hourago)
-
-//               ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${hourago.getMonth()>9 ? hourago.getMonth() : `0${hourago.getMonth()}`}-${hourago.getFullYear()} at ${time}`
-
-//                 dddd.push(ival)
-//            })
-//            await Promise.all(waittt1)
-
-//         result[0].BiddingTrip  = JSON.stringify(dddd);
-//       }else{
-//         result[0].BiddingTrip  = JSON.stringify([]);
-//       }
-
-//   let ActiveTrips = await Model.getAllData(
-//   `tbl_active_trips.*,tbl_trips.trip_id as Id_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
-//   tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
-//   tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
-
-//   `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
-
-//   `tbl_active_trips.vendor_id=${result[0].id} and tbl_active_trips.end = 0 and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
-//   DropCity.id = tbl_trips.drop_location `,
-//   1,
-//   `tbl_active_trips.id`
-//   )
-
-//   if(ActiveTrips){
-//     let ddd =  []
-//     let waittt1=await  BiddingTrip.map(async(ival,i)=>{
-//       ival.activeindicator = false
-//       ival.activeindicator1 = false;
-//       let Split_it = ival.pickUp_date.split(" ");
-
-//       let Split_date = Split_it[0].split("-");
-
-//       let Split_time = Split_it[1].split(":");
-
-//       let fullDate = `${Split_date[0]}/${parseInt(Split_date[1])+1}/${Split_date[2]} ${Split_time[0]}:${Split_time[1]}`;
-
-//       let hourago = new Date(fullDate);
-
-//       let time = await formatAMPM(hourago)
-
-//        ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${hourago.getMonth()>9 ? hourago.getMonth() : `0${hourago.getMonth()}`}-${hourago.getFullYear()} at ${time}`
-
-//        ddd.push(ival)
-//     })
-//     await Promise.all(waittt1)
-//         // console.log(ddd);
-//         result[0].ActiveTrips = JSON.stringify(ddd)
-//   }else{
-//     result[0].ActiveTrips = JSON.stringify([])
-//   }
-
-//   let ActiveTrips1 = await Model.getAllData(
-//     `tbl_active_trips.*,tbl_trips.trip_id as Id_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
-//     tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
-//     tbl_user_web.username as customername,tbl_user_web.mobile as customerMobile,tbl_user_web.address`,
-
-//     `tbl_active_trips,tbl_trips,tbl_city,tbl_city as DropCity,tbl_user_web`,
-
-//     `tbl_active_trips.vendor_id=${result[0].id} and tbl_active_trips.end = 1 and tbl_user_web.id = tbl_trips.customer_id  and tbl_active_trips.trip_id = tbl_trips.id and tbl_city.id = tbl_trips.pickup_location and
-//     DropCity.id = tbl_trips.drop_location `,
-//     1,
-//     `tbl_active_trips.id`
-//     )
-
-//         if(ActiveTrips){
-//           result[0].TripHistory = JSON.stringify(ActiveTrips1)
-//         }else{
-//           result[0].TripHistory = JSON.stringify([])
-//         }
-
-
-//       let vendorDrivers = await Model.getAllData(
-//         `*`,
-//         `tbl_vendor_drivers`,
-//         `vendor=${result[0].id}`,
-//         1,
-//         `id`
-//       )
-
-//       if(vendorDrivers){
-//         result[0].vendorDrivers = JSON.stringify(vendorDrivers)
-//       }else{
-//         result[0].vendorDrivers = JSON.stringify([])
-//       }
-
-//       let vendorCabs = await Model.getAllData(
-//         `*`,
-//         `tbl_vendor_cabs`,
-//         `vendor=${result[0].id}`,
-//         1,
-//         `id`
-//       )
-
-//       if(vendorCabs){
-//         result[0].vendorCabs = JSON.stringify(vendorCabs)
-//       }else{
-//         result[0].vendorCabs = JSON.stringify([])
-//       }
-
-//       let WalletHistory = await Model.getAllData(
-//         `tbl_wallet_master_history.*`,
-//         `tbl_user_web,tbl_wallet_master_history`,
-//         `tbl_user_web.id = ${result[0].id} and tbl_wallet_master_history.user_id = tbl_user_web.id`,
-//         `1`,
-//         `tbl_wallet_master_history.id DESC`
-//       )
-
-//       let tbl_vendar_documents = await Model.getAllData(
-//         `*`,
-//         `tbl_vendar_documents`,
-//         `userid=${result[0].id}`,
-//         1,
-//         1
-//       )
-//       if(tbl_vendar_documents){
-
-
-//         result[0].Documentation = JSON.stringify(tbl_vendar_documents)
-
-//       }else{
-
-//         result[0].Documentation = null
-
-//       }
-
-//       if(WalletHistory){
-
-//         let arr =[]
-
-//         let wait = await   WalletHistory.map((ival,i)=>{
-
-//           arr.push([i+1 , ival.amount , ival.debited_credited,ival.reason,ival.created_At])
-
-//         })
-
-
-//         await Promise.all(wait);
-
-//          result[0].wallethistory = JSON.stringify(arr);
-
-//         //  console.log(result);
-
-//           res.send(result);
-//           res.status(200);
-//     }else{
-
-//       result[0].wallethistory = null;
-//       // console.log(result);
-
-//        res.send(result);
-//        res.status(200);
-
-//     }
-//     }else{
-//       res.send(false);
-//       res.status(404)
-//     }
-
-
-
-//   } catch (error) {
-//     //db end connection
-//     // endConnection();
-//     console.error(chalk.red(error));
-//     res.status(500);
-//     next(error);
-//   }
-// };
-
 const getbeforedateandtimeFunction = async (Trips) => {
-
   let arr = []
-
   if (Trips.length > 0) {
-
     Trips.map(async (ival, i) => {
-
-
       let Split_it = ival.pickup_date.split(" ");
-
       let Split_date = Split_it[0].split("-");
-
       let Split_time = Split_it[1].split(":");
-
       let fullDate = `${Split_date[0]}/${parseInt(Split_date[1]) + 1}/${Split_date[2]} ${Split_time[0]}:${Split_time[1]}`;
-      // console.log(Split_it);
       let check = new Date(fullDate);
       var hourago = new Date(check.getTime() - (1000 * 60 * 60));
       let CurrentDate = new Date();
       let timed = await formatAMPM(hourago);
 
       ival.Will_visibleAt = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${hourago.getMonth() > 9 ? hourago.getMonth() : `0${hourago.getMonth()}`}-${hourago.getFullYear()} at ${timed}`
-
-
-      //  console.log( CurrentDate.getDate() , hourago.getDate());
 
       if (
         CurrentDate.getFullYear() == hourago.getFullYear() &&
@@ -1813,30 +1151,16 @@ const getbeforedateandtimeFunction = async (Trips) => {
           ival.beforehour = true;
         }
 
-        // ival.beforehour = true;
-
       } else {
 
         ival.beforehour = false;
-
-
       }
-
-
-
-
-
       let timeDiff = hourago.getTime() - CurrentDate.getTime()
 
       ival.Count_down = Math.floor(parseInt(timeDiff) / 10000);
 
-      // console.log(ival.Count_down,"hello"); 
-
-      arr.push(ival)
+      arr.push(ival);
     })
-
-    // console.log(arr,"length")
-
     return arr;
   }
 }
@@ -1844,13 +1168,8 @@ const getbeforedateandtimeFunction = async (Trips) => {
 
 const BackGroundRefreshApp = async (req, res, next) => {
 
-  // const body = req.body;
-
   let id = req.params.id;
-
   let token = req.params.token;
-
-  console.log(id, token);
   try {
 
     let result = await Model.getAllData(
@@ -1869,13 +1188,11 @@ const BackGroundRefreshApp = async (req, res, next) => {
         1,
         1
       )
-      // console.log(StateData,"STATE")
       if (StateData) {
         result[0].state = JSON.stringify(StateData)
       } else {
         result[0].state = JSON.stringify([])
       }
-
       let BiddingTrip = await Model.getAllData(
         `*`,
         `tbl_bidding_trips`,
@@ -1898,8 +1215,6 @@ const BackGroundRefreshApp = async (req, res, next) => {
       } else {
         result[0].announcement = JSON.stringify([])
       }
-
-      // console.log(result[0].announcement,65365);
       if (BiddingTrip) {
 
         let dddd = []
@@ -1923,7 +1238,6 @@ const BackGroundRefreshApp = async (req, res, next) => {
           dddd.push(ival)
         })
         await Promise.all(waittt1)
-        // console.log(dddd);
         result[0].BiddingTrip = JSON.stringify(dddd);
       } else {
         result[0].BiddingTrip = JSON.stringify([]);
@@ -1940,7 +1254,7 @@ const BackGroundRefreshApp = async (req, res, next) => {
     DropCity.id = tbl_trips.drop_location `,
         1,
         `tbl_active_trips.id`
-      )
+      );
 
       if (ActiveTrips.length) {
         let ddd = [];
@@ -1965,8 +1279,6 @@ const BackGroundRefreshApp = async (req, res, next) => {
 
           if (ival.trip_type == 'Round Trip') {
 
-            // drop_date
-
             let Split_it1 = ival.drop_date.split(" ");
 
             let Split_date1 = Split_it1[0].split("-");
@@ -1987,7 +1299,6 @@ const BackGroundRefreshApp = async (req, res, next) => {
         })
         await Promise.all(waittt1)
         let GetAct = await getbeforedateandtimeFunction(ActiveTrips)
-        console.log(GetAct, "256898");
         result[0].ActiveTrips = JSON.stringify(GetAct)
       } else {
         result[0].ActiveTrips = JSON.stringify([])
@@ -2011,7 +1322,6 @@ const BackGroundRefreshApp = async (req, res, next) => {
       } else {
         result[0].TripHistory = JSON.stringify([])
       }
-
 
       let vendorDrivers = await Model.getAllData(
         `*`,
@@ -2057,54 +1367,29 @@ const BackGroundRefreshApp = async (req, res, next) => {
         1
       )
       if (tbl_vendar_documents) {
-
-
         result[0].Documentation = JSON.stringify(tbl_vendar_documents)
-
       } else {
-
         result[0].Documentation = null
-
       }
-
       if (WalletHistory) {
-
         let arr = []
-
         let wait = await WalletHistory.map((ival, i) => {
-
           arr.push([i + 1, ival.amount, ival.debited_credited, ival.reason, ival.created_At])
-
         })
-
-
         await Promise.all(wait);
-
         result[0].wallethistory = JSON.stringify(arr);
-
-        //  console.log(result);
-
         res.send(result);
         res.status(200);
       } else {
-
         result[0].wallethistory = null;
-        // console.log(result);
-
         res.send(result);
         res.status(200);
-
       }
     } else {
       res.send(false);
       res.status(404)
     }
-
-
-
   } catch (error) {
-    //db end connection
-    // endConnection();
     console.error(chalk.red(error));
     res.status(500);
     next(error);
@@ -2117,21 +1402,15 @@ const AppLogin = async (req, res, next) => {
 
   const body = req.body;
 
-  // login_token
-
-
   try {
-
     let result = await Model.getAllData(
       `*`,
       `tbl_user_web`,
       `email_id ='${body.email_id}' and password ='${body.password}' and status = 1 and userType = 3`,
       1,
       1
-    )
-    // console.log(result);
+    );
     if (result.length) {
-
       let login_token = await randomString(10, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
 
       let UpdateToken = await Model.updateMaster(
@@ -2140,12 +1419,9 @@ const AppLogin = async (req, res, next) => {
         { login_token: login_token, login_status: 1 },
         "id"
       )
-
       if (UpdateToken) {
         result[0].login_token = login_token
       }
-
-
       let StateData = await Model.getAllData(
         `id as value ,state as label`,
         `tbl_state`,
@@ -2153,15 +1429,11 @@ const AppLogin = async (req, res, next) => {
         1,
         1
       )
-      console.log(StateData, "STATE")
       if (StateData) {
         result[0].state = JSON.stringify(StateData)
       } else {
         result[0].state = JSON.stringify([])
       }
-
-
-
       let vendorDrivers = await Model.getAllData(
         `*`,
         `tbl_vendor_drivers`,
@@ -2224,7 +1496,6 @@ const AppLogin = async (req, res, next) => {
 
 
         let waittt1 = await ActiveTrips.map(async (ival, i) => {
-          console.log(ival);
           ival.activeindicator = false;
           ival.activeindicator1 = false;
 
@@ -2265,17 +1536,10 @@ const AppLogin = async (req, res, next) => {
           ddd.push(ival);
         });
 
-
-
         await Promise.all(waittt1);
 
-        console.log(ddd, "karan");
-
         let GetAct = await getbeforedateandtimeFunction(ActiveTrips)
-        console.log(GetAct, "256898");
-
         result[0].ActiveTrips = JSON.stringify(GetAct);
-
       } else {
         result[0].ActiveTrips = JSON.stringify([])
       }
@@ -2299,8 +1563,6 @@ const AppLogin = async (req, res, next) => {
         result[0].TripHistory = JSON.stringify([])
       }
 
-
-
       let WalletHistory = await Model.getAllData(
         `tbl_wallet_master_history.*`,
         `tbl_user_web,tbl_wallet_master_history`,
@@ -2317,14 +1579,9 @@ const AppLogin = async (req, res, next) => {
         1
       )
       if (tbl_vendar_documents) {
-
-
         result[0].Documentation = JSON.stringify(tbl_vendar_documents)
-
       } else {
-
         result[0].Documentation = null
-
       }
 
       let BiddingTrip = await Model.getAllData(
@@ -2394,9 +1651,6 @@ const AppLogin = async (req, res, next) => {
       res.status = 404;
       res.send(false);
     }
-
-
-
   } catch (error) {
     //db end connection
     // endConnection();
@@ -4446,21 +3700,21 @@ const paymentMethod = async (req, res, next) => {
       1,
       1
     )
-      // console.log(userDetail)
-    if(userDetail.length==0){
+    // console.log(userDetail)
+    if (userDetail.length == 0) {
       res.send('no user found')
       res.status(404)
     }
-    
-    const instance = new Razorpay({
-      key_id: TESTRAZORPAY_KEY_ID,
-      key_secret: TESTRAZORPAY_SECRET,
-    });
 
     // const instance = new Razorpay({
-    //   key_id: RAZORPAY_KEY_ID,
-    //   key_secret: RAZORPAY_SECRET,
+    //   key_id: TESTRAZORPAY_KEY_ID,
+    //   key_secret: TESTRAZORPAY_SECRET,
     // });
+
+    const instance = new Razorpay({
+      key_id: RAZORPAY_KEY_ID,
+      key_secret: RAZORPAY_SECRET,
+    });
 
     const options = {
       amount: parseInt(amount), // amount in smallest currency unit
@@ -4472,10 +3726,10 @@ const paymentMethod = async (req, res, next) => {
 
     if (!order) return res.status(500).send("Some error occured");
 
-   
+
     console.log(order);
-   
-    if(order){
+
+    if (order) {
       res.json(order);
     }
 
@@ -4488,91 +3742,91 @@ const paymentMethod = async (req, res, next) => {
 }
 
 
-const paymentSuccessResponse = async(req,res,next)=>{
+const paymentSuccessResponse = async (req, res, next) => {
   try {
     // getting the details back from our font-end
     const {
-        orderCreationId,
-        razorpayPaymentId,
-        razorpayOrderId,
-        razorpaySignature,
-        login_token,
-        amount
+      orderCreationId,
+      razorpayPaymentId,
+      razorpayOrderId,
+      razorpaySignature,
+      login_token,
+      amount
     } = req.body;
     // console.log(req.body,"Success-body")
     // Creating our own digest
     // The format should be like this:
     // digest = hmac_sha256(orderCreationId + "|" + razorpayPaymentId, secret);
-    const shasum = crypto.createHmac("sha256", TESTRAZORPAY_SECRET);
+    const shasum = crypto.createHmac("sha256", RAZORPAY_SECRET);
 
     shasum.update(`${razorpayOrderId}|${razorpayPaymentId}`);
 
     const digest = shasum.digest("hex");
     // console.log(digest,"==",razorpaySignature )
     // comaparing our digest with the actual signature
-    if (digest !== razorpaySignature){
-        return res.status(400).json({ msg: "Transaction not legit!" });
+    if (digest !== razorpaySignature) {
+      return res.status(400).json({ msg: "Transaction not legit!" });
     }
 
-        const userDetail = await Model.getAllData(
-          `*`,
-          `tbl_user_web`,
-          `login_token='${login_token}' and status = 1`,
-          1,
-          1
-        );
-          // console.log(userDetail,"userDetail")
-        if(userDetail.length==0){
-          res.send('No user found')
-          res.status(500)
-        }
+    const userDetail = await Model.getAllData(
+      `*`,
+      `tbl_user_web`,
+      `login_token='${login_token}' and status = 1`,
+      1,
+      1
+    );
+    // console.log(userDetail,"userDetail")
+    if (userDetail.length == 0) {
+      res.send('No user found')
+      res.status(500)
+    }
 
-        const updateUserWallet = await Model.updateMaster(
-          `tbl_user_web`,
-          userDetail[0].id,
-          { wallet: parseInt(userDetail[0].wallet) + parseInt(amount) },
-        )
-        // console.log(updateUserWallet,"updateUserWallet")
-        if(!updateUserWallet){
-          return res.status(500).send("user wallet update failed");
-        }
-        const insertWalletHistory = await Model.addMaster(
-          `tbl_wallet_master_history`,
-          { amount : amount , debited_credited : 'credited' , reason : 'wallet amount' , user_id : userDetail[0].id , order_id : orderCreationId }
-        )
-          // console.log(insertWalletHistory)
-        if(!insertWalletHistory){
-          return res.status(500).send("user wallet history insert failed");
-        }
+    const updateUserWallet = await Model.updateMaster(
+      `tbl_user_web`,
+      userDetail[0].id,
+      { wallet: parseInt(userDetail[0].wallet) + parseInt(amount) },
+    )
+    // console.log(updateUserWallet,"updateUserWallet")
+    if (!updateUserWallet) {
+      return res.status(500).send("user wallet update failed");
+    }
+    const insertWalletHistory = await Model.addMaster(
+      `tbl_wallet_master_history`,
+      { amount: amount, debited_credited: 'credited', reason: 'wallet amount', user_id: userDetail[0].id, order_id: orderCreationId }
+    )
+    // console.log(insertWalletHistory)
+    if (!insertWalletHistory) {
+      return res.status(500).send("user wallet history insert failed");
+    }
 
     // THE PAYMENT IS LEGIT & VERIFIED
     // YOU CAN SAVE THE DETAILS IN YOUR DATABASE IF YOU WANT
 
-    if(insertWalletHistory){
+    if (insertWalletHistory) {
       res.json({
         msg: "success",
         orderId: razorpayOrderId,
         paymentId: razorpayPaymentId,
-    });
+      });
     }
-   
-} catch (error) {
+
+  } catch (error) {
     res.status(500).send(error);
-}
+  }
 }
 
-const sendAppDeepLink=async(req,res,next)=>{
+const sendAppDeepLink = async (req, res, next) => {
 
-    let jsonArray = [
-      {
-        relation:["delegate_permission/common.handle_all_urls"],
-        target:{
-          namespace:"android_app",
-          package_name:"com.r7zerocarbon",
-          sha256_cert_fingerprints:["A9:D7:C4:2E:5C:85:B5:F9:0C:37:DC:EC:F1:17:E2:16:2D:79:34:B0:95:C9:94:22:03:18:8C:58:DA:3E:53:2D"]
-        }
+  let jsonArray = [
+    {
+      relation: ["delegate_permission/common.handle_all_urls"],
+      target: {
+        namespace: "android_app",
+        package_name: "com.r7zerocarbon",
+        sha256_cert_fingerprints: ["A9:D7:C4:2E:5C:85:B5:F9:0C:37:DC:EC:F1:17:E2:16:2D:79:34:B0:95:C9:94:22:03:18:8C:58:DA:3E:53:2D"]
       }
-    ];
+    }
+  ];
   res.json(jsonArray)
 }
 

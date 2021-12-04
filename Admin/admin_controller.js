@@ -476,10 +476,10 @@ const logOutAdminUser = async (req, res, next) => {
       res.send('no user login found');
     }
     const user = await Model.getAllData(
-      `*`, `tbl_user_web`, `login_token='${req.headers.authorization}' and status =1`, 1, 1
+      `*`, `tbl_login_session`, `login_token='${req.headers.authorization}'`, 1, 1
     )
     if (user.length) {
-      let ChangeStatus = await Model.updateMaster(`tbl_user_web`, user[0].id, { login_status: 0, login_token: null, login_count: parseInt(user[0].login_count) + 1 });
+      let ChangeStatus = await Model.deleteMasterfromTable(`tbl_login_session`,`id = ${user[0].id}`);
       if (ChangeStatus) {
         res.status(200)
         res.send(true);
@@ -502,14 +502,28 @@ const LoginAdmin = async (req, res, next) => {
       1,
       1
     );
-    if (result.length) {
+    if (result.length > 0) {
       let loginToken = await randomString(10, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-      if (parseInt(result[0].login_count <= 3)) {
+      let loginCount = result[0].login_count == null ? 0 : result[0].login_count;
+      // if (parseInt(loginCount) <= 3 ) {
+      //   res.status(400);
+      //   res.send('maximum user logged in');
+      //   return false;
+      // };
+      let insertUserSession = await Model.addMaster(
+        `tbl_login_session`,
+        {user_id:result[0].id ,login_token:loginToken,user_session:result[0].login_token }
+        );
+
+      if(!insertUserSession){
         res.status(400);
-        res.send('maximum user logged in');
+        res.send('session user logged failed');
+        return false;
       }
-      let ChangeStatus = await Model.updateMaster(`tbl_user_web`, result[0].id, { login_status: 1, login_token: loginToken, login_count: parseInt(result[0].login_count) + 1 });
-      if (ChangeStatus) {
+
+      let ChangeStatus = await Model.updateMaster(`tbl_user_web`, result[0].id, { login_status: 1,login_count: loginCount + 1 });
+      // login_token: loginToken,
+      if (ChangeStatus){
         endConnection();
         result[0].login_token = loginToken;
         res.send(result);
@@ -861,7 +875,7 @@ const TripsData = async (req, res, next) => {
 
 const checkUserLogIn = async (login_token) => {
   const result = await Model.getAllData(
-    `*`, `tbl_user_web`, `login_token = '${login_token}' and status = 1`, 1, 1
+    `*`, `tbl_login_session`, `login_token = '${login_token}'`, 1, 1
   );
   if (result.length) {
     return true

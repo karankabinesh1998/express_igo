@@ -3283,7 +3283,7 @@ const TripsJson = async (req, res, next) => {
 
         // let hourago = new Date(fullDate);
         let hourago = new Date();
-        hourago.setFullYear(Split_date[0]-1)
+        hourago.setFullYear(Split_date[0])
         hourago.setMonth(parseInt(Split_date[1]) - 1)
         hourago.setDate(parseInt(Split_date[2]))
         hourago.setHours(parseInt(Split_time[0]))
@@ -3307,7 +3307,7 @@ const TripsJson = async (req, res, next) => {
           // let hourago1 = new Date(fullDate1);
 
           let hourago1 = new Date();
-        hourago1.setFullYear(Split_date1[0]-1)
+        hourago1.setFullYear(Split_date1[0])
         hourago1.setMonth(parseInt(Split_date1[1]) - 1)
         hourago1.setDate(parseInt(Split_date1[2]))
         hourago1.setHours(parseInt(Split_time1[0]))

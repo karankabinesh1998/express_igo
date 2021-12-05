@@ -2721,10 +2721,18 @@ const Addcabs1 = async (req, res, next) => {
   try {
 
     let body = req.body;
+    body.cab_number = body.cab_number.split(/\s/).join('');
+    body.cab_number = body.cab_number.toUpperCase();
+    const checkCabsData = await Model.getAllData(
+      `*`,
+      `tbl_vendor_cabs`,
+      `cab_number='${body.cab_number}'`
+    );
 
-    // console.log(body);
-
-    // console.log(req.files)
+    if(checkCabsData.length){
+      res.status(404)
+      res.send(false)
+    }
 
     let File = ["file1", "file2", "file3", "file4"]
 

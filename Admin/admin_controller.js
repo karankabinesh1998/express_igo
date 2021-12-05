@@ -3297,7 +3297,13 @@ const TripsJson = async (req, res, next) => {
 
         let fullDate = `${Split_date[0]}/${parseInt(Split_date[1]) + 1}/${Split_date[2]} ${Split_time[0]}:${Split_time[1]}`;
 
-        let hourago = new Date(fullDate);
+        // let hourago = new Date(fullDate);
+        let hourago = new Date();
+        hourago.setDate = Split_date[2];
+        hourago.setFullYear = Split_date[0];
+        hourago.setMonth = parseInt(Split_date[1]) + 1;
+        hourago.setTime = Split_time[0];
+        hourago.setMinutes = Split_time[1];
 
         let time = await formatAMPM(hourago)
 
@@ -3315,7 +3321,14 @@ const TripsJson = async (req, res, next) => {
 
           let fullDate1 = `${Split_date1[0]}/${parseInt(Split_date1[1]) + 1}/${Split_date1[2]} ${Split_time1[0]}:${Split_time1[1]}`;
 
-          let hourago1 = new Date(fullDate1);
+          // let hourago1 = new Date(fullDate1);
+
+          let hourago1 = new Date();
+          hourago.setDate = Split_date1[2];
+          hourago.setFullYear = Split_date1[0];
+          hourago.setMonth = parseInt(Split_date1[1]) + 1;
+          hourago.setTime = Split_time1[0];
+          hourago.setMinutes = Split_time1[1];
 
           let time1 = await formatAMPM(hourago1)
 

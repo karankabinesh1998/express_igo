@@ -3269,43 +3269,26 @@ const TripsJsons = async (req, res, next) => {
 
 
 const TripsJson = async (req, res, next) => {
+
   try {
-
-
-    let id = req.params.id;
-    // console.log(id);
-    // let result = await Model.getAllData(
-    //   `tbl_trips.*,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
-    //   `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city`,
-    //   `tbl_user_web.id = tbl_trips.customer_id and tbl_trips.pickup_location=tbl_city.id and tbl_trips.drop_location = new_city.id `,
-    //   1,
-    //   1
-    // )
+ let id = req.params.id;
     let result = await NewTrips(id);
 
-    // console.log(result,"3749");
-
     if (result.length) {
-
       let wait = await result.map(async (ival, i) => {
-
         let Split_it = ival.pickup_date.split(" ");
-
         let Split_date = Split_it[0].split("-");
-
         let Split_time = Split_it[1].split(":");
-
         let fullDate = `${Split_date[0]}/${parseInt(Split_date[1]) + 1}/${Split_date[2]} ${Split_time[0]}:${Split_time[1]}`;
 
         // let hourago = new Date(fullDate);
         let hourago = new Date();
-        hourago.setDate = Split_date[2];
-        hourago.setFullYear = Split_date[0];
-        hourago.setMonth = parseInt(Split_date[1]) + 1;
-        hourago.setTime = Split_time[0];
-        hourago.setMinutes = Split_time[1];
-
-        let time = await formatAMPM(hourago)
+        hourago.setFullYear(Split_date[0]-1)
+        hourago.setMonth(parseInt(Split_date[1]) - 1)
+        hourago.setDate(parseInt(Split_date[2]))
+        hourago.setHours(parseInt(Split_time[0]))
+        hourago.setMinutes(parseInt(Split_time[1]))
+        let time =  formatAMPM(hourago);
 
         ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${hourago.getMonth() > 9 ? hourago.getMonth() : `0${hourago.getMonth()}`}-${hourago.getFullYear()} at ${time}`
 
@@ -3324,13 +3307,12 @@ const TripsJson = async (req, res, next) => {
           // let hourago1 = new Date(fullDate1);
 
           let hourago1 = new Date();
-          hourago.setDate = Split_date1[2];
-          hourago.setFullYear = Split_date1[0];
-          hourago.setMonth = parseInt(Split_date1[1]) + 1;
-          hourago.setTime = Split_time1[0];
-          hourago.setMinutes = Split_time1[1];
-
-          let time1 = await formatAMPM(hourago1)
+        hourago1.setFullYear(Split_date1[0]-1)
+        hourago1.setMonth(parseInt(Split_date1[1]) - 1)
+        hourago1.setDate(parseInt(Split_date1[2]))
+        hourago1.setHours(parseInt(Split_time1[0]))
+        hourago1.setMinutes(parseInt(Split_time1[1]))
+        let time1 =  formatAMPM(hourago1)
 
           ival.new_drop_date = `${hourago1.getDate() > 9 ? hourago1.getDate() : `0${hourago1.getDate()}`}-${hourago1.getMonth() > 9 ? hourago1.getMonth() : `0${hourago1.getMonth()}`}-${hourago1.getFullYear()} at ${time1}`
         }

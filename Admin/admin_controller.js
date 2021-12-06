@@ -3298,7 +3298,15 @@ const TripsJson = async (req, res, next) => {
         hourago.setMinutes(parseInt(Split_time[1]))
         let time = await formatAMPM(hourago);
 
-        ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${hourago.getMonth() > 9 ? hourago.getMonth() : `0${hourago.getMonth()}`}-${hourago.getFullYear()} at ${time}`
+        let month_one = hourago.getMonth() + 1 ;
+
+        if(month_one > 9 ){
+          month_one = month_one
+        }else{
+          month_one = `0${month_one}`
+        }
+
+        ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${month_one}-${hourago.getFullYear()} at ${time}`
 
         // console.log(ival.new_pickup_date,time,"fullDate");
 
@@ -3320,9 +3328,17 @@ const TripsJson = async (req, res, next) => {
         // hourago1.setDate(parseInt(Split_date1[2]))
         hourago1.setHours(parseInt(Split_time1[0]))
         hourago1.setMinutes(parseInt(Split_time1[1]))
-        let time1 = await  formatAMPM(hourago1)
+        let time1 = await  formatAMPM(hourago1);
 
-          ival.new_drop_date = `${hourago1.getDate() > 9 ? hourago1.getDate() : `0${hourago1.getDate()}`}-${hourago1.getMonth() > 9 ? parseInt(hourago1.getMonth()) : `0${hourago1.getMonth()}`}-${hourago1.getFullYear()} at ${time1}`
+        let month_drop = hourago1.getMonth() + 1 ;
+
+        if(month_drop > 9 ){
+          month_drop = month_drop
+        }else{
+          month_drop = `0${month_drop}`
+        }
+
+          ival.new_drop_date = `${hourago1.getDate() > 9 ? hourago1.getDate() : `0${hourago1.getDate()}`}-${month_drop}-${hourago1.getFullYear()} at ${time1}`
         }
 
       });

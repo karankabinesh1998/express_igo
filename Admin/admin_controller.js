@@ -3287,13 +3287,13 @@ const TripsJson = async (req, res, next) => {
         let Split_it = ival.pickup_date.split(" ");
         let Split_date = Split_it[0].split("-");
         let Split_time = Split_it[1].split(":");
-        let fullDate = `${Split_date[0]}/${parseInt(Split_date[1]) + 1}/${Split_date[2]} ${Split_time[0]}:${Split_time[1]}`;
+        let fullDate = `${Split_date[0]}/${parseInt(Split_date[1])}/${Split_date[2]}`;
 
         // let hourago = new Date(fullDate);
-        let hourago = new Date();
-        hourago.setFullYear(Split_date[0])
-        hourago.setMonth(parseInt(Split_date[1]) - 1)
-        hourago.setDate(parseInt(Split_date[2]))
+        let hourago = new Date(fullDate);
+        // hourago.setFullYear(Split_date[0])
+        // hourago.setMonth(parseInt(Split_date[1]) - 1)
+        // hourago.setDate(parseInt(Split_date[2]))
         hourago.setHours(parseInt(Split_time[0]))
         hourago.setMinutes(parseInt(Split_time[1]))
         let time = await formatAMPM(hourago);
@@ -3310,19 +3310,19 @@ const TripsJson = async (req, res, next) => {
 
           let Split_time1 = Split_it1[1].split(":");
 
-          let fullDate1 = `${Split_date1[0]}/${parseInt(Split_date1[1]) + 1}/${Split_date1[2]} ${Split_time1[0]}:${Split_time1[1]}`;
+          let fullDate1 = `${Split_date1[0]}/${parseInt(Split_date1[1])}/${Split_date1[2]}`;
 
           // let hourago1 = new Date(fullDate1);
 
-          let hourago1 = new Date();
-        hourago1.setFullYear(Split_date1[0])
-        hourago1.setMonth(parseInt(Split_date1[1]) - 1)
-        hourago1.setDate(parseInt(Split_date1[2]))
+          let hourago1 = new Date(fullDate1);
+        // hourago1.setFullYear(Split_date1[0])
+        // hourago1.setMonth(parseInt(Split_date1[1]) - 1)
+        // hourago1.setDate(parseInt(Split_date1[2]))
         hourago1.setHours(parseInt(Split_time1[0]))
         hourago1.setMinutes(parseInt(Split_time1[1]))
         let time1 = await  formatAMPM(hourago1)
 
-          ival.new_drop_date = `${hourago1.getDate() > 9 ? hourago1.getDate() : `0${hourago1.getDate()}`}-${hourago1.getMonth() > 9 ? hourago1.getMonth() : `0${hourago1.getMonth()}`}-${hourago1.getFullYear()} at ${time1}`
+          ival.new_drop_date = `${hourago1.getDate() > 9 ? hourago1.getDate() : `0${hourago1.getDate()}`}-${hourago1.getMonth() > 9 ? parseInt(hourago1.getMonth()) : `0${hourago1.getMonth()}`}-${hourago1.getFullYear()} at ${time1}`
         }
 
       });

@@ -479,7 +479,7 @@ const logOutAdminUser = async (req, res, next) => {
       `*`, `tbl_login_session`, `login_token='${req.headers.authorization}'`, 1, 1
     )
     if (user.length) {
-      let ChangeStatus = await Model.deleteMasterfromTable(`tbl_login_session`,`id = ${user[0].id}`);
+      let ChangeStatus = await Model.deleteMasterfromTable(`tbl_login_session`, `id = ${user[0].id}`);
       if (ChangeStatus) {
         res.status(200)
         res.send(true);
@@ -512,18 +512,18 @@ const LoginAdmin = async (req, res, next) => {
       // };
       let insertUserSession = await Model.addMaster(
         `tbl_login_session`,
-        {user_id:result[0].id ,login_token:loginToken,user_session:result[0].login_token }
-        );
+        { user_id: result[0].id, login_token: loginToken, user_session: result[0].login_token }
+      );
 
-      if(!insertUserSession){
+      if (!insertUserSession) {
         res.status(400);
         res.send('session user logged failed');
         return false;
       }
 
-      let ChangeStatus = await Model.updateMaster(`tbl_user_web`, result[0].id, { login_status: 1,login_count: loginCount + 1 });
+      let ChangeStatus = await Model.updateMaster(`tbl_user_web`, result[0].id, { login_status: 1, login_count: loginCount + 1 });
       // login_token: loginToken,
-      if (ChangeStatus){
+      if (ChangeStatus) {
         endConnection();
         result[0].login_token = loginToken;
         res.send(result);
@@ -2593,20 +2593,23 @@ const Addcabs = async (req, res, next) => {
   try {
 
     let body = req.body;
+    if (!body.cab_number) {
+      res.status(404)
+      res.send(false)
+    }
     body.cab_number = body.cab_number.split(/\s/).join('');
     body.cab_number = body.cab_number.toUpperCase();
-    console.log(body);
     const checkCabsData = await Model.getAllData(
       `*`,
       `tbl_vendor_cabs`,
-      `cab_number='${body.cab_number}'`
+      `cab_number='${body.cab_number}'`,
+      1,
+      1
     );
-
-    if(checkCabsData.length){
-      res.status(404);
-      res.send(false);
-      return false
-    };
+    if (checkCabsData.length) {
+      res.status(404)
+      res.send(false)
+    }
     let File = req.body.file;
 
     File = JSON.parse(File)
@@ -2735,76 +2738,82 @@ const Addcabs1 = async (req, res, next) => {
   try {
 
     let body = req.body;
+    if (!body.cab_number) {
+      res.status(404)
+      res.send(false)
+    }
     body.cab_number = body.cab_number.split(/\s/).join('');
     body.cab_number = body.cab_number.toUpperCase();
-    console.log(body);
     const checkCabsData = await Model.getAllData(
       `*`,
       `tbl_vendor_cabs`,
-      `cab_number='${body.cab_number}'`
+      `cab_number='${body.cab_number}'`,
+      1,
+      1
     );
 
-    if(checkCabsData.length){
-      res.status(404);
-      res.send(false);
-      return false
-    }
+    if (checkCabsData.length) {
+      res.status(404)
+      res.send(false)
 
-    let File = ["file1", "file2", "file3", "file4"]
+    } else {
 
-    // console.log(File)
+      let File = ["file1", "file2", "file3", "file4"]
 
-    let wait = await File.map(async (ival, i) => {
+      // console.log(File)
 
-      if (ival == 'file1' && req.files.file1) {
-        body.cab_image_front = await UploadDocument1(req.files.file1, body.vendor)
-      } else if (ival == 'file2' && req.files.file2) {
-        body.cab_image_back = await UploadDocument1(req.files.file2, body.vendor);
-      } else if (ival == 'file3' && req.files.file3) {
-        body.cab_image_side = await UploadDocument1(req.files.file3, body.vendor);
-      } else if (ival == 'file4' && req.files.file4) {
-        body.cab_insurance = await UploadDocument1(req.files.file4, body.vendor);
+      let wait = await File.map(async (ival, i) => {
+
+        if (ival == 'file1' && req.files.file1) {
+          body.cab_image_front = await UploadDocument1(req.files.file1, body.vendor)
+        } else if (ival == 'file2' && req.files.file2) {
+          body.cab_image_back = await UploadDocument1(req.files.file2, body.vendor);
+        } else if (ival == 'file3' && req.files.file3) {
+          body.cab_image_side = await UploadDocument1(req.files.file3, body.vendor);
+        } else if (ival == 'file4' && req.files.file4) {
+          body.cab_insurance = await UploadDocument1(req.files.file4, body.vendor);
+        }
+      });
+
+      await Promise.all(wait)
+
+
+      delete body.file1;
+      delete body.file2;
+      delete body.file3;
+      delete body.file4;
+      delete body.file;
+
+      // console.log(body,"1858");
+
+      let result = await Model.addMaster(`tbl_vendor_cabs`, body)
+
+      if (result) {
+
+        // console.log(result,"1864");
+
+        let FetchData = await Model.getAllData(
+          `tbl_vendor_cabs.*,tbl_user_web.username`,
+          `tbl_vendor_cabs,tbl_user_web`,
+          `tbl_vendor_cabs.vendor = tbl_user_web.id and tbl_user_web.status = 1 and tbl_vendor_cabs.vendor =${body.vendor} `,
+          1,
+          `tbl_user_web.id`
+        )
+        if (FetchData) {
+          // console.log(FetchData);
+          res.send(FetchData)
+          res.status(200)
+        }
+
       }
-      
-    });
-
-    await Promise.all(wait)
-
-
-    delete body.file1;
-    delete body.file2;
-    delete body.file3;
-    delete body.file4;
-    delete body.file;
-
-    // console.log(body,"1858");
-
-    let result = await Model.addMaster(`tbl_vendor_cabs`, body)
-
-    if (result) {
-
-      // console.log(result,"1864");
-
-      let FetchData = await Model.getAllData(
-        `tbl_vendor_cabs.*,tbl_user_web.username`,
-        `tbl_vendor_cabs,tbl_user_web`,
-        `tbl_vendor_cabs.vendor = tbl_user_web.id and tbl_user_web.status = 1 and tbl_vendor_cabs.vendor =${body.vendor} `,
-        1,
-        `tbl_user_web.id`
-      )
-      if (FetchData) {
-        // console.log(FetchData);
-        res.send(FetchData)
-        res.status(200)
-      }
-
     }
 
   } catch (error) {
     endConnection();
     console.error(chalk.red(error));
-    res.send(error)
+
     res.status(500);
+    res.send(error)
     next(error);
   }
 }
@@ -3184,18 +3193,18 @@ const NewTrips = async (id) => {
       let wait1 = await result.map((ival, i) => {
         LocationLoop.map((jval, j) => {
           //  console.log(ival.PickState,jval,ival.DropState);
-          if (ival.PickState == jval && ival.DropState == jval) {
-            //  console.log(ival);
+          if (ival.PickState == jval || ival.DropState == jval) {
             ival.bidding_amount = 'No bidding';
             ival.tbl_bidding_id = null;
             NewResult.push(ival)
           }
         })
       })
-
       await Promise.all(wait1)
 
     }
+
+    NewResult = NewResult.filter((v,i,a)=>a.findIndex(t=>(t.id===v.id))===i);
 
     let tbl_bidding_trips = await Model.getAllData(
       `*`,
@@ -3297,7 +3306,7 @@ const TripsJsons = async (req, res, next) => {
 const TripsJson = async (req, res, next) => {
 
   try {
- let id = req.params.id;
+    let id = req.params.id;
     let result = await NewTrips(id);
 
     if (result.length) {
@@ -3307,26 +3316,20 @@ const TripsJson = async (req, res, next) => {
         let Split_time = Split_it[1].split(":");
         let fullDate = `${Split_date[0]}/${parseInt(Split_date[1])}/${Split_date[2]}`;
 
-        // let hourago = new Date(fullDate);
         let hourago = new Date(fullDate);
-        // hourago.setFullYear(Split_date[0])
-        // hourago.setMonth(parseInt(Split_date[1]) - 1)
-        // hourago.setDate(parseInt(Split_date[2]))
         hourago.setHours(parseInt(Split_time[0]))
         hourago.setMinutes(parseInt(Split_time[1]))
         let time = await formatAMPM(hourago);
 
-        let month_one = hourago.getMonth() + 1 ;
+        let month_one = hourago.getMonth() + 1;
 
-        if(month_one > 9 ){
+        if (month_one > 9) {
           month_one = month_one
-        }else{
+        } else {
           month_one = `0${month_one}`
         }
 
         ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${month_one}-${hourago.getFullYear()} at ${time}`
-
-        // console.log(ival.new_pickup_date,time,"fullDate");
 
         if (ival.trip_type != 'One Way') {
 
@@ -3338,23 +3341,18 @@ const TripsJson = async (req, res, next) => {
 
           let fullDate1 = `${Split_date1[0]}/${parseInt(Split_date1[1])}/${Split_date1[2]}`;
 
-          // let hourago1 = new Date(fullDate1);
-
           let hourago1 = new Date(fullDate1);
-        // hourago1.setFullYear(Split_date1[0])
-        // hourago1.setMonth(parseInt(Split_date1[1]) - 1)
-        // hourago1.setDate(parseInt(Split_date1[2]))
-        hourago1.setHours(parseInt(Split_time1[0]))
-        hourago1.setMinutes(parseInt(Split_time1[1]))
-        let time1 = await  formatAMPM(hourago1);
+          hourago1.setHours(parseInt(Split_time1[0]))
+          hourago1.setMinutes(parseInt(Split_time1[1]))
+          let time1 = await formatAMPM(hourago1);
 
-        let month_drop = hourago1.getMonth() + 1 ;
+          let month_drop = hourago1.getMonth() + 1;
 
-        if(month_drop > 9 ){
-          month_drop = month_drop
-        }else{
-          month_drop = `0${month_drop}`
-        }
+          if (month_drop > 9) {
+            month_drop = month_drop
+          } else {
+            month_drop = `0${month_drop}`
+          }
 
           ival.new_drop_date = `${hourago1.getDate() > 9 ? hourago1.getDate() : `0${hourago1.getDate()}`}-${month_drop}-${hourago1.getFullYear()} at ${time1}`
         }
@@ -3362,10 +3360,6 @@ const TripsJson = async (req, res, next) => {
       });
       await Promise.all(wait)
     }
-
-    // console.log(result,"3749");
-
-
 
     if (result) {
       res.status(200)

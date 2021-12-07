@@ -2593,6 +2593,20 @@ const Addcabs = async (req, res, next) => {
   try {
 
     let body = req.body;
+    body.cab_number = body.cab_number.split(/\s/).join('');
+    body.cab_number = body.cab_number.toUpperCase();
+    console.log(body);
+    const checkCabsData = await Model.getAllData(
+      `*`,
+      `tbl_vendor_cabs`,
+      `cab_number='${body.cab_number}'`
+    );
+
+    if(checkCabsData.length){
+      res.status(404);
+      res.send(false);
+      return false
+    };
     let File = req.body.file;
 
     File = JSON.parse(File)
@@ -2723,6 +2737,7 @@ const Addcabs1 = async (req, res, next) => {
     let body = req.body;
     body.cab_number = body.cab_number.split(/\s/).join('');
     body.cab_number = body.cab_number.toUpperCase();
+    console.log(body);
     const checkCabsData = await Model.getAllData(
       `*`,
       `tbl_vendor_cabs`,
@@ -2730,8 +2745,9 @@ const Addcabs1 = async (req, res, next) => {
     );
 
     if(checkCabsData.length){
-      res.status(404)
-      res.send(false)
+      res.status(404);
+      res.send(false);
+      return false
     }
 
     let File = ["file1", "file2", "file3", "file4"]
@@ -2749,6 +2765,7 @@ const Addcabs1 = async (req, res, next) => {
       } else if (ival == 'file4' && req.files.file4) {
         body.cab_insurance = await UploadDocument1(req.files.file4, body.vendor);
       }
+      
     });
 
     await Promise.all(wait)
@@ -2786,6 +2803,7 @@ const Addcabs1 = async (req, res, next) => {
   } catch (error) {
     endConnection();
     console.error(chalk.red(error));
+    res.send(error)
     res.status(500);
     next(error);
   }

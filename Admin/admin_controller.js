@@ -3754,7 +3754,7 @@ const DeleteDriver = async (req, res, next) => {
     next(error);
   }
 }
-
+  
 
 const paymentMethod = async (req, res, next) => {
 
@@ -3763,53 +3763,27 @@ const paymentMethod = async (req, res, next) => {
 
     let amount = body.amount + `00`;
 
-    const loginToken = await Model.getAllData(
-      `*`,
-      `tbl_login_session`,
-      `login_token=${body.login_token}`,
-      1,
-      1
-    );
-
-    if(loginToken.length==0){
-      res.send('no user found')
-      res.status(404)
-    }
-
-    const userDetail = await Model.getAllData(
-      `*`,
-      `tbl_user_web`,
-      `id = ${loginToken[0].user_id} and status = 1`,
-      1,
-      1
-    );
-    // console.log(userDetail)
-    if (userDetail.length == 0) {
-      res.send('no user found')
-      res.status(404)
-    }
-
     const instance = new Razorpay({
       key_id: RAZORPAY_KEY_ID,
       key_secret: RAZORPAY_SECRET,
     });
-
-    const options = {
-      amount: parseInt(amount), // amount in smallest currency unit
+   var options = {
+      amount: 50000,  // amount in the smallest currency unit
       currency: "INR",
-      receipt: "receipt_order_74394",
+      receipt: "order_rcptid_11"
     };
 
-    const order = await instance.orders.create(options);
+    console.log(instance);
 
-    if (!order) return res.status(500).send("Some error occured");
+  const order = await instance.orders.create(options);
 
+  console.log(order);
 
-    console.log(order);
+  if (!order) return res.status(500).send("Some error occured");
 
-    if (order) {
-      res.json(order);
-    }
+  if (order) {
+    res.json(order);
+  }
 
   } catch (error) {
     endConnection();

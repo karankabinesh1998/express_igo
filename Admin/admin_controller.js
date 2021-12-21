@@ -15,6 +15,30 @@ const https = require('https')
 const clients = [];
 const facts = [];
 
+async function payCheck (){
+    console.log('order');
+
+    const instance = new Razorpay({
+      key_id: RAZORPAY_KEY_ID,
+      key_secret: RAZORPAY_SECRET,
+    });
+   var options = {
+      amount: 50000,  // amount in the smallest currency unit
+      currency: "INR",
+      receipt: "order_rcptid_11"
+    };
+  
+    // console.log(instance);
+  
+  const order = await instance.orders.create(options);
+  
+  console.log(order);
+
+}
+
+payCheck()
+
+
 const eventsHandler = (request, response, next) => {
   const headers = {
     'Content-Type': 'text/event-stream',
@@ -3755,6 +3779,8 @@ const DeleteDriver = async (req, res, next) => {
   }
 }
   
+
+
 
 const paymentMethod = async (req, res, next) => {
 

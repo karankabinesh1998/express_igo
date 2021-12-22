@@ -3806,7 +3806,7 @@ const paymentMethod = async (req, res, next) => {
     const UserDetails = await Model.getAllData(
       `*`,
       `tbl_user_web`,
-      `id=${loginCheck.user_id} and status = 1`,
+      `id=${loginCheck[0].user_id} and status = 1`,
       1,
       1
     );

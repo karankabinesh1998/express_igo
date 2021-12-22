@@ -15,28 +15,29 @@ const https = require('https')
 const clients = [];
 const facts = [];
 
-async function payCheck (){
-    console.log('order');
 
-    const instance = new Razorpay({
-      key_id: RAZORPAY_KEY_ID,
-      key_secret: RAZORPAY_SECRET,
-    });
-   var options = {
-      amount: 50000,  // amount in the smallest currency unit
-      currency: "INR",
-      receipt: "order_rcptid_11"
-    };
-  
-    // console.log(instance);
-  
-  const order = await instance.orders.create(options);
-  
-  console.log(order);
+// async function payCheck (){
+//     console.log('order');
 
-}
+//     const instance = new Razorpay({
+//       key_id: RAZORPAY_KEY_ID,
+//       key_secret: RAZORPAY_SECRET,
+//     });
+//    var options = {
+//       amount: 50000,  // amount in the smallest currency unit
+//       currency: "INR",
+//       receipt: "order_rcptid_11"
+//     };
+  
+//     // console.log(instance);
+  
+//   const order = await instance.orders.create(options);
+  
+//   console.log(order);
 
-payCheck()
+// }
+
+// payCheck()
 
 
 const eventsHandler = (request, response, next) => {
@@ -1128,7 +1129,7 @@ const AddTrips = async (req, res, next) => {
       }
     } else if (newcustomer == 1) {
       let customer1 = JSON.parse(body.customer);
-      let customer = customer1[0]
+      let customer = customer1[0];
       customer.status = 1;
       customer.userType = 4;
       let AddNewCustomer = await Model.addMaster(`tbl_user_web`, customer);
@@ -3789,27 +3790,48 @@ const paymentMethod = async (req, res, next) => {
 
     let amount = body.amount + `00`;
 
+    const loginCheck = await Model.getAllData(
+      `*`,
+      `tbl_login_session`,
+      `login_token='${body.login_token}'`,
+      1,
+      1
+    );
+
+    if(!loginCheck){
+      res.send('no user session found')
+      res.status(401)
+    };
+
+    const UserDetails = await Model.getAllData(
+      `*`,
+      `tbl_user_web`,
+      `id=${loginCheck.user_id} and status = 1`,
+      1,
+      1
+    );
+
+    if(!UserDetails){
+      res.send('no active user found')
+      res.status(401)
+    }
+
     const instance = new Razorpay({
       key_id: RAZORPAY_KEY_ID,
       key_secret: RAZORPAY_SECRET,
     });
-   var options = {
-      amount: 50000,  // amount in the smallest currency unit
+
+    var options = {
+      amount: Number(amount),  // amount in the smallest currency unit
       currency: "INR",
       receipt: "order_rcptid_11"
     };
+    const order = await instance.orders.create(options);
+    if (!order) return res.status(500).send("Some error occured");
 
-    console.log(instance);
-
-  const order = await instance.orders.create(options);
-
-  console.log(order);
-
-  if (!order) return res.status(500).send("Some error occured");
-
-  if (order) {
-    res.json(order);
-  }
+    if (order) {
+      res.json(order);
+    }
 
   } catch (error) {
     endConnection();
@@ -3847,17 +3869,30 @@ const paymentSuccessResponse = async (req, res, next) => {
       return res.status(400).json({ msg: "Transaction not legit!" });
     }
 
-    const userDetail = await Model.getAllData(
+    const loginCheck = await Model.getAllData(
       `*`,
-      `tbl_user_web`,
-      `login_token='${login_token}' and status = 1`,
+      `tbl_login_session`,
+      `login_token='${body.login_token}'`,
       1,
       1
     );
-    // console.log(userDetail,"userDetail")
-    if (userDetail.length == 0) {
-      res.send('No user found')
-      res.status(500)
+
+    if(!loginCheck){
+      res.send('no user session found')
+      res.status(401)
+    };
+
+    const userDetail = await Model.getAllData(
+      `*`,
+      `tbl_user_web`,
+      `id=${loginCheck.user_id} and status = 1`,
+      1,
+      1
+    );
+
+    if(!userDetail){
+      res.send('no active user found')
+      res.status(401)
     }
 
     const updateUserWallet = await Model.updateMaster(

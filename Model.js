@@ -6,10 +6,10 @@ let connection = startConnection();
 
 class Model {
 
-    static getAllData(selection, tableName, condition,groupby,orderby) {
+    static getAllData(selection, tableName, condition,groupby=null,orderby=null) {
         return new Promise((resolve, reject) => {
           connection.query(
-            `select ${selection} from ${tableName} where ${condition} group by ${groupby} order by ${orderby}`,
+            `select ${selection} from ${tableName} where ${condition} ${groupby ? `group by ${groupby}` : ''} ${orderby ? `order by ${orderby}`:''}`,
             (err, rows) => {
               if (err) return reject(err);
               resolve(rows);

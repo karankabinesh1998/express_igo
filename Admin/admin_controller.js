@@ -1021,7 +1021,6 @@ const SendNotifyToUser = async (pickup_location, drop_location) => {
               })
 
               if (i + 1 == UserData.length) {
-                console.log("Hello");
                 return true
               }
             }
@@ -1120,7 +1119,7 @@ const AddTrips = async (req, res, next) => {
       if (result) {
         let getData = await Model.getAllData(`*`, `tbl_trips`, `id=${result.insertId}`, 1, 1)
         if (getData) {
-          let SendNotifyToUser1 = await SendNotifyToUser(body.pickup_location, body.drop_location);
+          await SendNotifyToUser(body.pickup_location, body.drop_location);
           if (getData) {
             res.send(getData)
             res.status(200);
@@ -1128,22 +1127,20 @@ const AddTrips = async (req, res, next) => {
         }
       }
     } else if (newcustomer == 1) {
-      let customer1 = JSON.parse(body.customer);
-      let customer = customer1[0];
+      let newCustomerInsertData = JSON.parse(body.customer);
+      let customer = newCustomerInsertData[0];
       customer.status = 1;
       customer.userType = 4;
       let AddNewCustomer = await Model.addMaster(`tbl_user_web`, customer);
-
       if (AddNewCustomer) {
-        delete body.customer;
+        delete body?.customer;
         body.customer_id = AddNewCustomer.insertId;
         body.trip_id = await randomString(10, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
         const result1 = await Model.addMaster(`tbl_trips`, body);
 
         if (result1) {
           let getData1 = await Model.getAllData(`*`, `tbl_trips`, `id=${result1.insertId}`, 1, 1);
-          let SendNotifyToUser1 = await SendNotifyToUser(body.pickup_location, body.drop_location);
-
+          await SendNotifyToUser(body.pickup_location, body.drop_location);
           if (getData1) {
             res.send(getData1)
             res.status(200);
@@ -3941,6 +3938,51 @@ const DeleteCab = async (req, res, next) => {
     }
 
 
+  } catch (error) {
+    endConnection();
+    console.error(chalk.red(error));
+    res.status(500);
+    next(error);
+  }
+}
+
+const dashBoardDetails = async(req,res,next)=>{
+  try {
+
+    const vendorCount = await Model.getAllData(
+      `id,status,userType`,
+        `tbl_user_web`,
+        `userType=3 and status = 1`,
+        `id`,
+        1
+    );
+
+    const customerCount = await Model.getAllData(
+      `id,status,userType`,
+        `tbl_user_web`,
+        `userType=4 and status = 1`,
+        `id`,
+        1
+    );
+    
+    let tripsCount = 0;
+    const tripsData = await bridge.getAllData(
+      `*`,
+      `tbl_trips`,
+      `trip_status = 'active'`,
+      1,
+      `id DESC`
+    );
+    if (tripsCount?.length) {
+
+      tripsCount.map((trip) => {
+        if (moment(trip?.pickup_date).format("YYYY-MM-DD") !== 'Invalid date' &&
+          moment(trip?.pickup_date).format("YYYY-MM-DD") >= moment(new Date()).format("YYYY-MM-DD")) {
+            tripsCount = tripsCount + 1;
+        }
+      })
+    }   
+    
   } catch (error) {
     endConnection();
     console.error(chalk.red(error));

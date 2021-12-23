@@ -3962,7 +3962,7 @@ const dashBoardDetails = async(req,res,next)=>{
     );
     
     let tripsCount = 0;
-    const tripsData = await bridge.getAllData(
+    const tripsData = await Model.getAllData(
       `*`,
       `tbl_trips`,
       `trip_status = 'active'`,
@@ -3979,7 +3979,7 @@ const dashBoardDetails = async(req,res,next)=>{
       })
     };
     
-    const totalAmountRecieved = await bridge.getAllData(
+    const totalAmountRecieved = await Model.getAllData(
       `SUM(amount) as total `,
     `tbl_wallet_master_history`,
     `debited_credited = 'credited' and created_At BETWEEN '${moment().subtract(1, 'days').format("YYYY-MM-DD hh:mm:ss")}' and '${moment(new Date()).format("YYYY-MM-DD hh:mm:ss")}'`,

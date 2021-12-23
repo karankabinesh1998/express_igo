@@ -3950,19 +3950,15 @@ const dashBoardDetails = async(req,res,next)=>{
   try {
 
     const vendorCount = await Model.getAllData(
-      `id,status,userType`,
-        `tbl_user_web`,
-        `userType=3 and status = 1`,
-        `id`,
-        1
+      `COUNT(id) as total`,
+      `tbl_user_web`,
+      `userType=3 and status = 1`,
     );
 
     const customerCount = await Model.getAllData(
-      `id,status,userType`,
-        `tbl_user_web`,
-        `userType=4 and status = 1`,
-        `id`,
-        1
+      `COUNT(id) as total`,
+      `tbl_user_web`,
+      `userType=4 and status = 1`,
     );
     
     let tripsCount = 0;
@@ -3973,15 +3969,29 @@ const dashBoardDetails = async(req,res,next)=>{
       1,
       `id DESC`
     );
-    if (tripsCount?.length) {
+    if (tripsData?.length) {
 
-      tripsCount.map((trip) => {
+      tripsData.map((trip) => {
         if (moment(trip?.pickup_date).format("YYYY-MM-DD") !== 'Invalid date' &&
           moment(trip?.pickup_date).format("YYYY-MM-DD") >= moment(new Date()).format("YYYY-MM-DD")) {
             tripsCount = tripsCount + 1;
         }
       })
-    }   
+    };
+    
+    const totalAmountRecieved = await bridge.getAllData(
+      `SUM(amount) as total `,
+    `tbl_wallet_master_history`,
+    `debited_credited = 'credited' and created_At BETWEEN '${moment().subtract(1, 'days').format("YYYY-MM-DD hh:mm:ss")}' and '${moment(new Date()).format("YYYY-MM-DD hh:mm:ss")}'`,
+    );
+
+    endConnection()
+    res.send({
+      vendorCount : vendorCount,
+      customerCount : customerCount,
+      tripsCount : tripsCount,
+      totalAmountRecieved:totalAmountRecieved
+    })
     
   } catch (error) {
     endConnection();

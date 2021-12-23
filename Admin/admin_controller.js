@@ -3780,9 +3780,6 @@ const DeleteDriver = async (req, res, next) => {
   }
 }
   
-
-
-
 const paymentMethod = async (req, res, next) => {
 
   try {
@@ -3804,7 +3801,7 @@ const paymentMethod = async (req, res, next) => {
     };
 
     const UserDetails = await Model.getAllData(
-      `*`,
+      `username,mobile,email_id,address`,
       `tbl_user_web`,
       `id=${loginCheck[0].user_id} and status = 1`,
       1,
@@ -3830,7 +3827,7 @@ const paymentMethod = async (req, res, next) => {
     if (!order) return res.status(500).send("Some error occured");
 
     if (order) {
-      res.json(order);
+      res.json({order :order , UserDetails : UserDetails[0]});
     }
 
   } catch (error) {
@@ -3855,9 +3852,8 @@ const paymentSuccessResponse = async (req, res, next) => {
       amount
     } = req.body;
     // console.log(req.body,"Success-body")
-    // Creating our own digest
-    // The format should be like this:
     // digest = hmac_sha256(orderCreationId + "|" + razorpayPaymentId, secret);
+    
     const shasum = crypto.createHmac("sha256", RAZORPAY_SECRET);
 
     shasum.update(`${razorpayOrderId}|${razorpayPaymentId}`);
@@ -3872,7 +3868,7 @@ const paymentSuccessResponse = async (req, res, next) => {
     const loginCheck = await Model.getAllData(
       `*`,
       `tbl_login_session`,
-      `login_token='${body.login_token}'`,
+      `login_token='${login_token}'`,
       1,
       1
     );
@@ -3885,7 +3881,7 @@ const paymentSuccessResponse = async (req, res, next) => {
     const userDetail = await Model.getAllData(
       `*`,
       `tbl_user_web`,
-      `id=${loginCheck.user_id} and status = 1`,
+      `id=${loginCheck[0].user_id} and status = 1`,
       1,
       1
     );
@@ -3898,36 +3894,37 @@ const paymentSuccessResponse = async (req, res, next) => {
     const updateUserWallet = await Model.updateMaster(
       `tbl_user_web`,
       userDetail[0].id,
-      { wallet: parseInt(userDetail[0].wallet) + parseInt(amount) },
+      { wallet: Number(userDetail[0].wallet) + Number(amount) },
     )
-    // console.log(updateUserWallet,"updateUserWallet")
+    
     if (!updateUserWallet) {
       return res.status(500).send("user wallet update failed");
     }
+    
     const insertWalletHistory = await Model.addMaster(
       `tbl_wallet_master_history`,
       { amount: amount, debited_credited: 'credited', reason: 'wallet amount', user_id: userDetail[0].id, order_id: orderCreationId }
     )
-    // console.log(insertWalletHistory)
+    
     if (!insertWalletHistory) {
       return res.status(500).send("user wallet history insert failed");
     }
 
-    // THE PAYMENT IS LEGIT & VERIFIED
-    // YOU CAN SAVE THE DETAILS IN YOUR DATABASE IF YOU WANT
-
-    if (insertWalletHistory) {
-      res.json({
+    res.json({
         msg: "success",
         orderId: razorpayOrderId,
         paymentId: razorpayPaymentId,
       });
-    }
-
+	  
   } catch (error) {
-    res.status(500).send(error);
+    endConnection();
+    console.error(chalk.red(error));
+    res.send(error)
+    res.status(500);
+    next(error);
   }
 }
+
 
 const sendAppDeepLink = async (req, res, next) => {
 

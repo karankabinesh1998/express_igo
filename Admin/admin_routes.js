@@ -119,6 +119,10 @@ router
   .route('/trips/:newcustomer/:id?')
   .post(corsOptionsDelegate, Controller.AddTrips)
 
+  router
+  .route('/dashBoardDetails')
+  .get(corsOptionsDelegate,Controller.dashBoardDetails)
+
 router
   .route('/AppLogin/:id?')
   .post(Controller.AppLogin)

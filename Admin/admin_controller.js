@@ -4013,6 +4013,7 @@ module.exports = {
   sendAppDeepLink,
   deleteMaster,
   Check_Db,
+  dashBoardDetails,
   AddVendarDocument,
   DownloadFile,
   UpdateVendarDocument,

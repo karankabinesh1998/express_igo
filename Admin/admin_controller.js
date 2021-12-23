@@ -3192,14 +3192,9 @@ const NewTrips = async (id) => {
 
   let finalarray = [];
 
+ try {
 
-  try {
-
-    // let d = moment(new Date()).format('MM-DD-YYYY HH:MM:SS');
-
-    // console.log(d);
-
-    let UserTripLocation = await Model.getAllData(
+     let UserTripLocation = await Model.getAllData(
       `travel_location,id`,
       `tbl_user_web`,
       `status = 1 and id = ${id}`,
@@ -3209,8 +3204,6 @@ const NewTrips = async (id) => {
 
     let LocationLoop = JSON.parse(UserTripLocation[0].travel_location);
 
-    // console.log(LocationLoop,"UserTripLocation");
-
     let result = await Model.getAllData(
       `tbl_trips.*,tbl_state.id as PickState,StateData.id as DropState,tbl_user_web.username as customer_name,tbl_city.city as pickuplocation_name,new_city.city as drop_location_name`,
       `tbl_trips,tbl_user_web,tbl_city,tbl_city as new_city,tbl_state,tbl_state as StateData`,
@@ -3218,8 +3211,6 @@ const NewTrips = async (id) => {
       1,
       `tbl_trips.id DESC`
     );
-
-
 
     let NewResult = []
 
@@ -3235,10 +3226,9 @@ const NewTrips = async (id) => {
           }
         })
       })
-
       await Promise.all(wait1)
-
     }
+
 	  NewResult = NewResult.filter((v,i,a)=>a.findIndex(t=>(t.id===v.id))===i);
 
     let tbl_bidding_trips = await Model.getAllData(
@@ -3249,57 +3239,48 @@ const NewTrips = async (id) => {
       1
     );
 
-    let NewArray = [];
+   let NewArray = [];
 
-    let wait = NewResult.map((ival, i) => {
-      tbl_bidding_trips.map((jval, j) => {
+   let wait = NewResult.map((ival, i) => {
+     tbl_bidding_trips.map((jval, j) => {
 
+       if (ival.id == jval.trip_id && jval.vendor_id == id) {
+         ival.bidding_amount = jval.req_amount;
+         ival.tbl_bidding_id = jval.id;
+         NewArray.push(ival);
+       }
+     })
+   })
+   await Promise.all(wait)
+   if (NewResult) {
+     let wait = await NewResult.map((ival, i) => {
+       let pickDate = new Date(ival.pickup_date);
+       if (pickDate.getTime() > new Date().getTime()) {
+         if (ival.trip_id == '88DIFWJ2VJ') {
+           // console.log(ival,"654654")
+         }
+         finalarray.push(ival)
+       }
+       //console.log(ival.pickup_date); 
+     });
+     await Promise.all(wait);
 
+     finalarray.sort((a, b) => {
+       let fa = a.pickup_date,
+         fb = b.pickup_date;
 
-        if (ival.id == jval.trip_id && jval.vendor_id == id) {
+       if (fa < fb) {
+         return -1;
+       }
+       if (fa > fb) {
+         return 1;
+       }
+       return 0;
+     });
+  
 
-          ival.bidding_amount = jval.req_amount;
-          ival.tbl_bidding_id = jval.id;
-
-          NewArray.push(ival);
-
-        }
-
-
-      })
-    })
-
-    await Promise.all(wait)
-
-    //  console.log(NewResult,"3150");
-
-    if (NewResult) {
-      // console.log('====================================');
-
-      let wait = await NewResult.map((ival, i) => {
-
-        let pickDate = new Date(ival.pickup_date);
-        // console.log(pickDate.getTime(),'====',new Date().getTime());
-
-        if (pickDate.getTime() > new Date().getTime()) {
-          if (ival.trip_id == '88DIFWJ2VJ') {
-            // console.log(ival,"654654")
-          }
-          finalarray.push(ival)
-        }
-
-        //console.log(ival.pickup_date); 
-
-      })
-
-
-
-      await Promise.all(wait);
-
-      return finalarray
-      // console.log('====================================');
-    }
-
+     return finalarray
+   }
 
   } catch (error) {
     console.log(error);
@@ -3351,11 +3332,7 @@ const TripsJson = async (req, res, next) => {
         let Split_time = Split_it[1].split(":");
         let fullDate = `${Split_date[0]}/${parseInt(Split_date[1])}/${Split_date[2]}`;
 
-        // let hourago = new Date(fullDate);
         let hourago = new Date(fullDate);
-        // hourago.setFullYear(Split_date[0])
-        // hourago.setMonth(parseInt(Split_date[1]) - 1)
-        // hourago.setDate(parseInt(Split_date[2]))
         hourago.setHours(parseInt(Split_time[0]))
         hourago.setMinutes(parseInt(Split_time[1]))
         let time = await formatAMPM(hourago);
@@ -3370,8 +3347,6 @@ const TripsJson = async (req, res, next) => {
 
         ival.new_pickup_date = `${hourago.getDate() > 9 ? hourago.getDate() : `0${hourago.getDate()}`}-${month_one}-${hourago.getFullYear()} at ${time}`
 
-        // console.log(ival.new_pickup_date,time,"fullDate");
-
         if (ival.trip_type != 'One Way') {
 
           let Split_it1 = ival.drop_date.split(" ");
@@ -3382,23 +3357,18 @@ const TripsJson = async (req, res, next) => {
 
           let fullDate1 = `${Split_date1[0]}/${parseInt(Split_date1[1])}/${Split_date1[2]}`;
 
-          // let hourago1 = new Date(fullDate1);
-
           let hourago1 = new Date(fullDate1);
-        // hourago1.setFullYear(Split_date1[0])
-        // hourago1.setMonth(parseInt(Split_date1[1]) - 1)
-        // hourago1.setDate(parseInt(Split_date1[2]))
-        hourago1.setHours(parseInt(Split_time1[0]))
-        hourago1.setMinutes(parseInt(Split_time1[1]))
-        let time1 = await  formatAMPM(hourago1);
+          hourago1.setHours(parseInt(Split_time1[0]))
+          hourago1.setMinutes(parseInt(Split_time1[1]))
+          let time1 = await formatAMPM(hourago1);
 
-        let month_drop = hourago1.getMonth() + 1 ;
+          let month_drop = hourago1.getMonth() + 1;
 
-        if(month_drop > 9 ){
-          month_drop = month_drop
-        }else{
-          month_drop = `0${month_drop}`
-        }
+          if (month_drop > 9) {
+            month_drop = month_drop
+          } else {
+            month_drop = `0${month_drop}`
+          }
 
           ival.new_drop_date = `${hourago1.getDate() > 9 ? hourago1.getDate() : `0${hourago1.getDate()}`}-${month_drop}-${hourago1.getFullYear()} at ${time1}`
         }
@@ -3406,10 +3376,6 @@ const TripsJson = async (req, res, next) => {
       });
       await Promise.all(wait)
     }
-
-    // console.log(result,"3749");
-
-
 
     if (result) {
       res.status(200)
@@ -3427,7 +3393,7 @@ const TripsJson = async (req, res, next) => {
 const formatAMPM = async (date) => {
 
   var hours = date.getHours();
-  // console.log(hours,"hours")
+  //console.log(hours,"hours")
   var minutes = date.getMinutes();
   var ampm = hours >= 12 ? 'pm' : 'am';
   hours = hours % 12;
@@ -3908,13 +3874,15 @@ const paymentSuccessResponse = async (req, res, next) => {
     
     if (!insertWalletHistory) {
       return res.status(500).send("user wallet history insert failed");
+    }else{
+
+      res.json({
+          msg: "success",
+          orderId: razorpayOrderId,
+          paymentId: razorpayPaymentId,
+        });
     }
 
-    res.json({
-        msg: "success",
-        orderId: razorpayOrderId,
-        paymentId: razorpayPaymentId,
-      });
 	  
   } catch (error) {
     endConnection();

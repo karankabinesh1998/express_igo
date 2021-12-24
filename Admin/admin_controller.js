@@ -3955,12 +3955,19 @@ const dashBoardDetails = async(req,res,next)=>{
       `debited_credited = 'credited' and created_At BETWEEN '${moment().subtract(1, 'days').format("YYYY-MM-DD hh:mm:ss")}' and '${moment(new Date()).format("YYYY-MM-DD hh:mm:ss")}'`,
     );
 
+    const overAllTotalAmountRecieved = await Model.getAllData(
+      `SUM(amount) as total`,
+      `tbl_wallet_master_history`,
+      `debited_credited = 'credited' and order_id IS NOT NULL `,
+    );
+
     endConnection()
     res.send({
       vendorCount : vendorCount,
       customerCount : customerCount,
       tripsCount : tripsCount,
-      totalAmountRecieved:totalAmountRecieved
+      totalAmountRecieved:totalAmountRecieved,
+      overAllTotalAmountRecieved:overAllTotalAmountRecieved
     })
     
   } catch (error) {

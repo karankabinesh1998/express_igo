@@ -1401,7 +1401,7 @@ const BackGroundRefreshApp = async (req, res, next) => {
       if (WalletHistory) {
         let arr = []
         let wait = await WalletHistory.map((ival, i) => {
-          arr.push([i + 1, ival.amount, ival.debited_credited, ival.reason, ival.created_At])
+          arr.push([i + 1, ival.amount, ival.debited_credited, ival.reason, moment(ival.created_At).format('MMM Do YY,h:mm a')])
         })
         await Promise.all(wait);
         result[0].wallethistory = JSON.stringify(arr);
@@ -1428,15 +1428,16 @@ const BackGroundRefreshApp = async (req, res, next) => {
 const AppLogin = async (req, res, next) => {
   const body = req.body;
   try {
-    let result = await Model.getAllData(
+
+   let result = await Model.getAllData(
       `*`,
       `tbl_user_web`,
-      `email_id ='${body.email_id}' and password ='${body.password}' and status = 1 and userType = 3`,
+      `mobile ='${body.mobile}' and password ='${body.password}' and status = 1 and userType = 3`,
       1,
       1
     );
     if(!result.length){
-      res.status(401).send('no user login found')
+      res.status(401).send({message:'wrong mobile / password !!'})
     }
     if (result.length) {
       let login_token = await randomString(10, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
@@ -1652,7 +1653,7 @@ const AppLogin = async (req, res, next) => {
         let arr = []
 
         let wait = await WalletHistory.map((ival, i) => {
-          arr.push([i + 1, ival.amount, ival.debited_credited, ival.reason, ival.created_At])
+          arr.push([i + 1, ival.amount, ival.debited_credited, ival.reason, moment(ival.created_At).format('MMM Do YY,h:mm a')])
         })
         await Promise.all(wait);
         result[0].wallethistory = JSON.stringify(arr);
@@ -1664,8 +1665,7 @@ const AppLogin = async (req, res, next) => {
         res.status(200);
       }
     } else {
-      res.status = 401;
-      res.send('no user found');
+      res.status(401).send('no user found');
     }
   } catch (error) {
     //db end connection
@@ -2205,7 +2205,7 @@ const UploadUserProfile = async (req, res, next) => {
 
             let wait = await WalletHistory.map((ival, i) => {
 
-              arr.push([i + 1, ival.amount, ival.debited_credited, ival.reason, ival.created_At])
+              arr.push([i + 1, ival.amount, ival.debited_credited, ival.reason, moment(ival.created_At).format('MMM Do YY,h:mm a')])
 
             })
 

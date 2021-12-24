@@ -1435,6 +1435,9 @@ const AppLogin = async (req, res, next) => {
       1,
       1
     );
+    if(!result.length){
+      res.status(401).res.send('no user login found')
+    }
     if (result.length) {
       let login_token = await randomString(10, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');
 
@@ -1580,8 +1583,7 @@ const AppLogin = async (req, res, next) => {
           DropCity.id = tbl_trips.drop_location `,
         1,
         `tbl_active_trips.id Desc`
-      )
-
+      );
       if (ActiveTrips) {
         result[0].TripHistory = JSON.stringify(ActiveTrips1)
       } else {
@@ -1650,9 +1652,7 @@ const AppLogin = async (req, res, next) => {
         let arr = []
 
         let wait = await WalletHistory.map((ival, i) => {
-
           arr.push([i + 1, ival.amount, ival.debited_credited, ival.reason, ival.created_At])
-
         })
         await Promise.all(wait);
         result[0].wallethistory = JSON.stringify(arr);

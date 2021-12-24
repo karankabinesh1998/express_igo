@@ -4,40 +4,30 @@ const chalk = require("chalk");
 const { FACTOR_API_KEY, RAZORPAY_SECRET, RAZORPAY_KEY_ID, TESTRAZORPAY_KEY_ID, TESTRAZORPAY_SECRET } = require('../Envreader');
 const fs = require("fs");
 var admin = require("firebase-admin");
-const path = require('path')
 var serviceAccount = require("./igotaxy-firebase-adminsdk-2c5sg-2a09a1a5ee.json");
-const TwoFactor = new (require('2factor'))(FACTOR_API_KEY)
-const wsServer = require('./webSocket');
+const TwoFactor = new (require('2factor'))(FACTOR_API_KEY);
 const Razorpay = require("razorpay");
 let crypto = require("crypto");
-const http = require('http')
-const https = require('https');
-const moment = require('moment')
+const moment = require('moment');
 const clients = [];
 const facts = [];
 
 
-// async function payCheck (){
-//     console.log('order');
-
-//     const instance = new Razorpay({
-//       key_id: RAZORPAY_KEY_ID,
-//       key_secret: RAZORPAY_SECRET,
-//     });
-//    var options = {
-//       amount: 50000,  // amount in the smallest currency unit
-//       currency: "INR",
-//       receipt: "order_rcptid_11"
-//     };
-  
-//     // console.log(instance);
-  
-//   const order = await instance.orders.create(options);
-  
-//   console.log(order);
-
-// }
-
+async function payCheck (){
+    console.log('order');
+    const instance = new Razorpay({
+      key_id: RAZORPAY_KEY_ID,
+      key_secret: RAZORPAY_SECRET,
+    });
+   var options = {
+      amount: 50000,  // amount in the smallest currency unit
+      currency: "INR",
+      receipt: "order_rcptid_11"
+    };
+    // console.log(instance);
+  const order = await instance.orders.create(options);
+  console.log(order);
+}
 // payCheck()
 
 
@@ -1436,9 +1426,7 @@ const BackGroundRefreshApp = async (req, res, next) => {
 
 
 const AppLogin = async (req, res, next) => {
-
   const body = req.body;
-
   try {
     let result = await Model.getAllData(
       `*`,
@@ -1457,14 +1445,12 @@ const AppLogin = async (req, res, next) => {
         "id"
       );
       let newLoginToken = await Model.addMaster(
-          `tbl_login_session`,
-          {
-            user_id : result[0].id,
-            login_token : login_token
-          }
+        `tbl_login_session`,
+        {
+          user_id: result[0].id,
+          login_token: login_token
+        }
       );
-
-
       if (UpdateToken) {
         result[0].login_token = login_token
       }
@@ -1486,7 +1472,7 @@ const AppLogin = async (req, res, next) => {
         `vendor=${result[0].id}`,
         1,
         `id`
-      )
+      );
 
       if (vendorDrivers) {
         result[0].vendorDrivers = JSON.stringify(vendorDrivers)
@@ -1521,8 +1507,6 @@ const AppLogin = async (req, res, next) => {
       } else {
         result[0].announcement = JSON.stringify([])
       }
-
-
       let ActiveTrips = await Model.getAllData(
         `tbl_active_trips.*,tbl_trips.trip_id as T_trip,tbl_trips.trip_type,tbl_city.city as pickup_location,DropCity.city as droplocation,
           tbl_trips.pickup_date,tbl_trips.drop_date,tbl_trips.cab_type,tbl_trips.trip_kms,tbl_trips.trip_charges,tbl_trips.extra_charge,
@@ -1539,8 +1523,6 @@ const AppLogin = async (req, res, next) => {
       if (ActiveTrips.length > 0) {
 
         let ddd = [];
-
-
         let waittt1 = await ActiveTrips.map(async (ival, i) => {
           ival.activeindicator = false;
           ival.activeindicator1 = false;
@@ -1561,8 +1543,6 @@ const AppLogin = async (req, res, next) => {
 
           if (ival.trip_type == 'Round Trip') {
 
-            // drop_date
-
             let Split_it1 = ival.drop_date.split(" ");
 
             let Split_date1 = Split_it1[0].split("-");
@@ -1581,7 +1561,6 @@ const AppLogin = async (req, res, next) => {
 
           ddd.push(ival);
         });
-
         await Promise.all(waittt1);
 
         let GetAct = await getbeforedateandtimeFunction(ActiveTrips)
@@ -1662,7 +1641,6 @@ const AppLogin = async (req, res, next) => {
         })
         await Promise.all(waittt1)
         result[0].BiddingTrip = JSON.stringify(dddd);
-        // result[0].BiddingTrip  = JSON.stringify(BiddingTrip)
       } else {
         result[0].BiddingTrip = JSON.stringify([])
       }
@@ -1676,30 +1654,22 @@ const AppLogin = async (req, res, next) => {
           arr.push([i + 1, ival.amount, ival.debited_credited, ival.reason, ival.created_At])
 
         })
-
-
         await Promise.all(wait);
-
         result[0].wallethistory = JSON.stringify(arr);
-
         res.status(200);
         res.send(result)
       } else {
-
         result[0].wallethistory = null;
-        // console.log(result);
-
         res.send(result);
         res.status(200);
-
       }
     } else {
-      res.status = 404;
-      res.send(false);
+      res.status = 401;
+      res.send('no user found');
     }
   } catch (error) {
     //db end connection
-    // endConnection();
+    endConnection();
     console.error(chalk.red(error));
     res.status(500);
     next(error);
@@ -3404,7 +3374,6 @@ const formatAMPM = async (date) => {
 const APPregister = async (req, res, next) => {
   try {
 
-    console.log(req.body);
     let body = req.body;
 
     body.travel_location = JSON.stringify([54])
@@ -3415,7 +3384,7 @@ const APPregister = async (req, res, next) => {
       `email_id='${body.email_id}' or mobile='${body.mobile}'`,
       1,
       1
-    )
+    );
 
     console.log(checkExistUser, "USEr");
 
@@ -3975,15 +3944,15 @@ const dashBoardDetails = async(req,res,next)=>{
       tripsData.map((trip) => {
         if (moment(trip?.pickup_date).format("YYYY-MM-DD") !== 'Invalid date' &&
           moment(trip?.pickup_date).format("YYYY-MM-DD") >= moment(new Date()).format("YYYY-MM-DD")) {
-            tripsCount = tripsCount + 1;
+          tripsCount = tripsCount + 1;
         }
       })
     };
     
     const totalAmountRecieved = await Model.getAllData(
-      `SUM(amount) as total `,
-    `tbl_wallet_master_history`,
-    `debited_credited = 'credited' and created_At BETWEEN '${moment().subtract(1, 'days').format("YYYY-MM-DD hh:mm:ss")}' and '${moment(new Date()).format("YYYY-MM-DD hh:mm:ss")}'`,
+      `SUM(amount) as total`,
+      `tbl_wallet_master_history`,
+      `debited_credited = 'credited' and created_At BETWEEN '${moment().subtract(1, 'days').format("YYYY-MM-DD hh:mm:ss")}' and '${moment(new Date()).format("YYYY-MM-DD hh:mm:ss")}'`,
     );
 
     endConnection()

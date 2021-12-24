@@ -1436,7 +1436,7 @@ const AppLogin = async (req, res, next) => {
       1
     );
     if(!result.length){
-      res.status(401).res.send('no user login found')
+      res.status(401).send('no user login found')
     }
     if (result.length) {
       let login_token = await randomString(10, '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ');

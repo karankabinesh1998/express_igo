@@ -6,7 +6,8 @@ const responseTime = require('response-time');
 const fileUpload = require('express-fileupload');
 const path = require('path');
 const morgan = require('morgan');
-var routes = require('./routes')
+var routes = require('./routes');
+
 
 var app = express();
 const winston = require('./winston');

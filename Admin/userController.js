@@ -35,11 +35,11 @@ const passwordDecrypt = (password,hash)=>{
 
 const loginUser = async(req,res,next)=>{
   try {
-    const condition = req?.body?.email_id ? 'email_id' : 'mobile'
-    const result = await Model.getAllData(
+    console.log(req?.body);
+     const result = await Model.getAllData(
       `id,password,username,email_id,mobile`,
       `tbl_user_web`,
-      `${condition}='${req?.body?.mobile}' and userType = 4`
+      `mobile='${req?.body?.mobile}' and userType = 4`
     );
     if(result?.length){
       const passwordCheck = passwordDecrypt(req?.body?.password,result[0]?.password);
@@ -59,7 +59,7 @@ const loginUser = async(req,res,next)=>{
         res.status(400).json({ error:`Incorrect password`});
       }
     }else{
-      res.status(400).json({ error:`Incorrect ${condition}`});
+      res.status(400).json({ error:`Incorrect mobile`});
     }
     endConnection();
   } catch (error) {

@@ -23,48 +23,55 @@ const passwordEncrypt = (password) => {
   const saltRounds = 10;
   const salt = bcrypt.genSaltSync(saltRounds);
   const hash = bcrypt.hashSync(password, salt);
-  if(hash){
+  if (hash) {
     return hash;
   }
 };
 
-const passwordDecrypt = (password='karan1998@#',hash='$2b$10$EE9hecGXLzZVI3Fwuq/.3OIs06CYtv0LrJKLDK5Oz8Wf60jhnuVjC')=>{
+const passwordDecrypt = (password, hash) => {
   const checkPassword = bcrypt.compareSync(password, hash);
-  console.log(checkPassword,'check');
+  console.log(checkPassword, 'check');
   return checkPassword;
 };
-passwordDecrypt()
-const loginUser = async(req,res,next)=>{
+
+const loginUser = async (req, res, next) => {
   try {
     console.log(req?.body);
-     const result = await Model.getAllData(
+    const result = await Model.getAllData(
       `id,password,username,email_id,mobile`,
       `tbl_user_web`,
       `mobile='${req?.body?.mobile}' and userType = 4 and status =1`
     );
-    if(result?.length){
-      const passwordCheck = passwordDecrypt(req?.body?.password,result[0]?.password);
-      if(passwordCheck){
-          const login_token = randomString();
-          const updateLogin = await Model.updateMaster(
-            `tbl_user_web`,
-            result[0]?.id,
-            { login_status : 1 , login_token : login_token }
+    if (result?.length) {
+      const passwordCheck = passwordDecrypt(req?.body?.password, result[0]?.password);
+      if (passwordCheck) {
+        const login_token = randomString();
+        const updateLogin = await Model.updateMaster(
+          `tbl_user_web`,
+          result[0]?.id,
+          { login_status: 1, login_token: login_token }
+        );
+        if (updateLogin) {
+          const insertLoginSession = await Model.addMaster(
+            `tbl_login_session`,
+            { user_id: result[0]?.id, login_token: login_token }
           );
-          if(!updateLogin){
-            const insertLoginSession = await Model.addMaster(
-              `tbl_login_session`,
-              { user_id : result[0]?.id , login_token : login_token }
-            );
+          if (insertLoginSession) {
             result[0].login_token = login_token;
             delete result[0]?.password;
             res.status(200).send(result);
+          } else {
+            res.status(400).json({ error: 'something went wrong!!' });
           }
-      } else{
-        res.status(400).json({ error:`Incorrect password`});
+
+        } else {
+          res.status(400).json({ error: 'something went wrong!!' });
+        }
+      } else {
+        res.status(400).json({ error: `Incorrect password` });
       }
-    }else{
-      res.status(400).json({ error:`Incorrect mobile`});
+    } else {
+      res.status(400).json({ error: `Incorrect mobile` });
     }
     endConnection();
   } catch (error) {
@@ -82,13 +89,13 @@ const addUser = async (req, res, next) => {
       `tbl_user_web`,
       `email_id='${req?.body?.email_id}' OR mobile='${req?.body?.mobile}' and status = 1 and userType = 4`
     );
-    if(checkUser?.length){
-      res.status(409).json({ error:"User Mobile or Email Already Exists"});
+    if (checkUser?.length) {
+      res.status(409).json({ error: "User Mobile or Email Already Exists" });
       return;
     };
     insertData.password = passwordEncrypt(insertData?.password);
     insertData.status = 1;
-    insertData.userType=4;
+    insertData.userType = 4;
     const result = await Model.addMaster(
       `tbl_user_web`,
       insertData
@@ -96,7 +103,7 @@ const addUser = async (req, res, next) => {
     if (result) {
       res.status(200).send(result);
     } else {
-      res.status(500).json({ error :"something went wrong"});
+      res.status(500).json({ error: "something went wrong" });
     }
     endConnection();
   } catch (error) {

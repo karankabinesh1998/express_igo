@@ -11,13 +11,67 @@ let crypto = require("crypto");
 const moment = require('moment');
 const bcrypt = require('bcrypt');
 
+
 const randomString = () => {
   let chars = '0123456789abcdefghijklmnopqrstuvwxABCDEFGHIJKLMNOPQRSTUVWXYZ@!#$%&*';
   let length = 30;
   var result = '';
   for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
   return result;
-}
+};
+
+const checkUserLogIn = async (login_token) => {
+  try {
+    const result = await Model.getAllData(
+      `*`, `tbl_login_session`, `login_token = '${login_token}'`, 1, 1
+    );
+    if (result.length) {
+      const userDetails = await Model.getAllData(
+        `*`,
+        `tbl_user_web`,
+        `id = ${result?.[0]?.user_id} and status = 1 and userType = 4`
+      );
+      if(userDetails.length){
+        return userDetails;
+      }else{
+        return false;
+      }
+    } else {
+      return false
+    };
+  } catch (error) {
+    return error;
+  }
+};
+
+const userLogOut = async (req, res, next) => {
+  try {
+    const loginToken = req?.headers?.authorization;
+    const deleteTokenSession = await Model.deleteMasterfromTable(
+      `tbl_login_session`,
+      `login_token='${loginToken}'`
+    );
+    if (!deleteTokenSession) {
+      res.status(404).json({ error: "no login session found" });
+    } else {
+      const updateUserLoginStatus = Model.updateMaster(
+        `tbl_user_web`,
+        deleteTokenSession[0]?.user_id,
+        { login_status: 0, loginToken: null }
+      );
+      if(updateUserLoginStatus){
+        res.status(200).send("successfully logged out")
+      }else{
+        res.status(404).json({ error: "no login session found" })
+      }
+    }
+    endConnection();
+  } catch (error) {
+    endConnection();
+    console.log(chalk.red(error));
+    res.status(500).send("General Server Error");
+  }
+};
 
 const passwordEncrypt = (password) => {
   const saltRounds = 10;
@@ -59,6 +113,7 @@ const loginUser = async (req, res, next) => {
           if (insertLoginSession) {
             result[0].login_token = login_token;
             delete result[0]?.password;
+            delete result[0]?.id;
             res.status(200).send(result);
           } else {
             res.status(400).json({ error: 'something went wrong!!' });
@@ -116,5 +171,6 @@ const addUser = async (req, res, next) => {
 
 module.exports = {
   addUser,
-  loginUser
+  loginUser,
+  userLogOut
 }

@@ -49,4 +49,8 @@ const corsOptionsDelegate = (req, res, next) => {
   .route("/login")
   .post(userController.loginUser);
 
+  router
+  .route("/logout")
+  .post(userController.userLogOut);
+
   module.exports = router;

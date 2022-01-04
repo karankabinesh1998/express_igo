@@ -39,7 +39,7 @@ const loginUser = async(req,res,next)=>{
     const result = await Model.getAllData(
       `id,password,username,email_id,mobile`,
       `tbl_user_web`,
-      `${condition}='${req?.body?.mobile}'`
+      `${condition}='${req?.body?.mobile}' and userType = 3`
     );
     if(result?.length){
       const passwordCheck = passwordDecrypt(req?.body?.password,result[0]?.password);

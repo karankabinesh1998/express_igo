@@ -486,16 +486,16 @@ const UpdateToken = async (req, res, next) => {
 
 const logOutAdminUser = async (req, res, next) => {
   try {
-    const checkLogin = await checkUserLogIn(req.headers.authorization)
+    const checkLogin = await checkUserLogIn(req?.headers?.authorization)
     if (checkLogin == false) {
       res.status(404);
       res.send('no user login found');
     }
     const user = await Model.getAllData(
-      `*`, `tbl_login_session`, `login_token='${req.headers.authorization}'`, 1, 1
+      `*`, `tbl_login_session`, `login_token='${req?.headers?.authorization}'`, 1, 1
     )
     if (user.length) {
-      let ChangeStatus = await Model.deleteMasterfromTable(`tbl_login_session`,`id = ${user[0].id}`);
+      let ChangeStatus = await Model.deleteMasterfromTable(`tbl_login_session`,`user_id = ${user[0]?.id}`);
       if (ChangeStatus) {
         res.status(200)
         res.send(true);
@@ -952,11 +952,13 @@ const getFreedom = async (req, res, next) => {
 };
 
 
-const randomString = async (length, chars) => {
+const randomString = async () => {
+  let chars = '0123456789abcdefghijklmnopqrstuvwxABCDEFGHIJKLMNOPQRSTUVWXYZ@!#$%&*';
+  let length = 30;
   var result = '';
   for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
   return result;
-}
+};
 
 const SendNotifyToUser = async (pickup_location, drop_location) => {
   try {
@@ -3568,18 +3570,22 @@ const VendorUserLogout = async (req, res, next) => {
   let id = req.params.id;
   body.login_status = 0
   try {
-    // console.log("HELLO");
-    // console.log(body);
-
+    const logoutSession = await Model.deleteMasterfromTable(
+      `tbl_login_session`,
+      `login_token = '${login_token}'`
+    );
+    if(!logoutSession){
+      ///
+    } 
     let result = await Model.updateMaster(
       `tbl_user_web`,
       id,
       body
-    )
+    );
 
     if (result) {
-      res.send(true)
       res.status(200)
+      res.send(true)
     } else {
       res.status(500)
       res.send(false)

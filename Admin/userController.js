@@ -11,7 +11,7 @@ let crypto = require("crypto");
 const moment = require('moment');
 const bcrypt = require('bcrypt');
 
-const randomString = async () => {
+const randomString = () => {
   let chars = '0123456789abcdefghijklmnopqrstuvwxABCDEFGHIJKLMNOPQRSTUVWXYZ@!#$%&*';
   let length = 30;
   var result = '';
@@ -28,29 +28,34 @@ const passwordEncrypt = (password) => {
   }
 };
 
-const passwordDecrypt = (password,hash)=>{
+const passwordDecrypt = (password='karan1998@#',hash='$2b$10$EE9hecGXLzZVI3Fwuq/.3OIs06CYtv0LrJKLDK5Oz8Wf60jhnuVjC')=>{
   const checkPassword = bcrypt.compareSync(password, hash);
+  console.log(checkPassword,'check');
   return checkPassword;
 };
-
+passwordDecrypt()
 const loginUser = async(req,res,next)=>{
   try {
     console.log(req?.body);
      const result = await Model.getAllData(
       `id,password,username,email_id,mobile`,
       `tbl_user_web`,
-      `mobile='${req?.body?.mobile}' and userType = 4`
+      `mobile='${req?.body?.mobile}' and userType = 4 and status =1`
     );
     if(result?.length){
       const passwordCheck = passwordDecrypt(req?.body?.password,result[0]?.password);
       if(passwordCheck){
-          let login_token = randomString();
+          const login_token = randomString();
           const updateLogin = await Model.updateMaster(
             `tbl_user_web`,
             result[0]?.id,
             { login_status : 1 , login_token : login_token }
           );
           if(!updateLogin){
+            const insertLoginSession = await Model.addMaster(
+              `tbl_login_session`,
+              { user_id : result[0]?.id , login_token : login_token }
+            );
             result[0].login_token = login_token;
             delete result[0]?.password;
             res.status(200).send(result);

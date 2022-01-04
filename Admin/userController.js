@@ -56,10 +56,10 @@ const loginUser = async(req,res,next)=>{
             res.status(200).send(result);
           }
       } else{
-        res.status(400).send(`Incorrect password`);
+        res.status(400).json({ error:`Incorrect password`});
       }
     }else{
-      res.status(400).send(`Incorrect ${condition}`);
+      res.status(400).json({ error:`Incorrect ${condition}`});
     }
     endConnection();
   } catch (error) {
@@ -78,7 +78,7 @@ const addUser = async (req, res, next) => {
       `email_id='${req?.body?.email_id}' OR mobile='${req?.body?.mobile}' and status = 1`
     );
     if(checkUser?.length){
-      res.status(409).send("User Mobile or Email Already Exists");
+      res.status(409).json({ error:"User Mobile or Email Already Exists"});
       return;
     };
     insertData.password = passwordEncrypt(insertData?.password);
@@ -91,13 +91,13 @@ const addUser = async (req, res, next) => {
     if (result) {
       res.status(200).send(result);
     } else {
-      res.status(500).send("something went wrong");
+      res.status(500).json({ error :"something went wrong"});
     }
     endConnection();
   } catch (error) {
     endConnection();
     console.log(chalk.red(error));
-    res.status(500).send("General Server Error");
+    res.status(500).json("General Server Error");
   }
 };
 

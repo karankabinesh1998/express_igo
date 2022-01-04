@@ -39,7 +39,7 @@ const loginUser = async(req,res,next)=>{
     const result = await Model.getAllData(
       `id,password,username,email_id,mobile`,
       `tbl_user_web`,
-      `${condition}='${req?.body?.mobile}' and userType = 3`
+      `${condition}='${req?.body?.mobile}' and userType = 4`
     );
     if(result?.length){
       const passwordCheck = passwordDecrypt(req?.body?.password,result[0]?.password);
@@ -75,7 +75,7 @@ const addUser = async (req, res, next) => {
     const checkUser = await Model.getAllData(
       `id`,
       `tbl_user_web`,
-      `email_id='${req?.body?.email_id}' OR mobile='${req?.body?.mobile}' and status = 1`
+      `email_id='${req?.body?.email_id}' OR mobile='${req?.body?.mobile}' and status = 1 and userType = 4`
     );
     if(checkUser?.length){
       res.status(409).json({ error:"User Mobile or Email Already Exists"});

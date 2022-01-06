@@ -60,7 +60,7 @@ const userAccountDetails = async(req,res,next)=>{
       res.send(401).send("No user Login found");
       return;
     }else{
-      res.send(200).send(userDetails);
+      res.send(200).json(userDetails);
     }
     endConnection();
   } catch (error) {

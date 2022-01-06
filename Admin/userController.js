@@ -37,18 +37,22 @@ const checkUserLogIn = async (login_token) => {
         return false;
       }
     } else {
-      return false
+      return false;
     };
   } catch (error) {
-    return error;
+    return undefined;
   }
 };
 
-const userAccountDetails = async(req,res,next)=>{
+const userAccountDetails = async (req, res, next) => {
   try {
     const userCheck = await checkUserLogIn(req?.headers?.authorization);
+    if (userCheck == undefined) {
+      res.status(500).json({ error: "General server error" });
+      return;
+    }
     if (userCheck == false) {
-      res.send(401).send("No user Login found");
+      res.status(401).json({ error: "No user Login found" });
       return;
     };
     const userDetails = await Model.getAllData(
@@ -56,19 +60,19 @@ const userAccountDetails = async(req,res,next)=>{
       `tbl_user_web`,
       `id=${userCheck[0].id} and status = 1 and userType=4`
     );
-    if(!userDetails.length){
-      res.send(401).send("No user Login found");
+    if (!userDetails.length) {
+      res.status(401).json({ error: "No user Login found" });
       return;
-    }else{
-      res.send(200).json(userDetails);
+    } else {
+      res.status(200).send(userDetails);
     }
     endConnection();
   } catch (error) {
     endConnection();
     console.log(chalk.red(error));
-    res.status(500).send("General Server Error");
+    res.status(500).status("General Server Error");
   }
-}
+};
 
 const userLogOut = async (req, res, next) => {
   try {

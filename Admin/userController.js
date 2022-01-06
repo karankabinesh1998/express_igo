@@ -27,7 +27,7 @@ const checkUserLogIn = async (login_token) => {
     );
     if (result.length) {
       const userDetails = await Model.getAllData(
-        `id`,
+        `id,password`,
         `tbl_user_web`,
         `id = ${result?.[0]?.user_id} and status = 1 and userType = 4`
       );
@@ -41,6 +41,45 @@ const checkUserLogIn = async (login_token) => {
     };
   } catch (error) {
     return undefined;
+  }
+};
+
+const updateAccountDetails = async (req, res, next) => {
+  try {
+    let body = req.body;
+    const userCheck = await checkUserLogIn(req?.headers?.authorization);
+    if (userCheck == undefined) {
+      res.status(500).json({ error: "General server error" });
+      return;
+    }
+    if (userCheck == false) {
+      res.status(401).json({ error: "No user Login found" });
+      return;
+    };
+    const checkPassword = passwordDecrypt(body?.old_password, userCheck[0]?.password);
+    if(checkPassword){
+      delete body.old_password;
+      body.password = passwordEncrypt(body?.new_password);
+      delete body.new_password;
+      const updateUser = await Model.updateMaster(
+        `tbl_user_web`,
+        userCheck[0]?.id,
+        body
+      );
+      if (updateUser) {
+        res.status(200).send(updateUser);
+      } else {
+        res.status(404).json({ error: "something went wrong" })
+      }
+
+    }else{
+      res.status(400).json({ error: `Incorrect old password` });
+    }
+    endConnection();
+  } catch (error) {
+    endConnection();
+    console.log(chalk.red(error));
+    res.status(500).status("General Server Error");
   }
 };
 
@@ -203,5 +242,6 @@ module.exports = {
   addUser,
   loginUser,
   userLogOut,
-  userAccountDetails
+  userAccountDetails,
+  updateAccountDetails
 }

@@ -55,6 +55,7 @@ const corsOptionsDelegate = (req, res, next) => {
 
   router
   .route("/my-account")
-  .get(userController.userAccountDetails);
+  .get(userController.userAccountDetails)
+  .patch(userController.updateAccountDetails)
 
   module.exports = router;

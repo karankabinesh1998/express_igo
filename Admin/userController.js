@@ -27,7 +27,7 @@ const checkUserLogIn = async (login_token) => {
     );
     if (result.length) {
       const userDetails = await Model.getAllData(
-        `*`,
+        `id`,
         `tbl_user_web`,
         `id = ${result?.[0]?.user_id} and status = 1 and userType = 4`
       );
@@ -44,6 +44,32 @@ const checkUserLogIn = async (login_token) => {
   }
 };
 
+const userAccountDetails = async(req,res,next)=>{
+  try {
+    const userCheck = await checkUserLogIn(req?.headers?.authorization);
+    if (userCheck == false) {
+      res.send(401).send("No user Login found");
+      return;
+    };
+    const userDetails = await Model.getAllData(
+      `first_name,last_name,mobile,email_id`,
+      `tbl_user_web`,
+      `id=${userCheck[0].id} and status = 1 and userType=4`
+    );
+    if(!userDetails.length){
+      res.send(401).send("No user Login found");
+      return;
+    }else{
+      res.send(200).send(userDetails);
+    }
+    endConnection();
+  } catch (error) {
+    endConnection();
+    console.log(chalk.red(error));
+    res.status(500).send("General Server Error");
+  }
+}
+
 const userLogOut = async (req, res, next) => {
   try {
     const loginToken = req?.headers?.authorization;
@@ -52,7 +78,7 @@ const userLogOut = async (req, res, next) => {
       `login_token='${loginToken}'`
     );
     if (!deleteTokenSession) {
-      res.status(404).json({ error: "no login session found" });
+      res.status(401).json({ error: "no login session found" });
     } else {
       const updateUserLoginStatus = Model.updateMaster(
         `tbl_user_web`,
@@ -62,7 +88,7 @@ const userLogOut = async (req, res, next) => {
       if(updateUserLoginStatus){
         res.status(200).send("successfully logged out")
       }else{
-        res.status(404).json({ error: "no login session found" })
+        res.status(401).json({ error: "no login session found" })
       }
     }
     endConnection();
@@ -172,5 +198,6 @@ const addUser = async (req, res, next) => {
 module.exports = {
   addUser,
   loginUser,
-  userLogOut
+  userLogOut,
+  userAccountDetails
 }

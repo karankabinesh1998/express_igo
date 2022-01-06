@@ -47,6 +47,7 @@ const checkUserLogIn = async (login_token) => {
 const updateAccountDetails = async (req, res, next) => {
   try {
     let body = req.body;
+    console.log(body);
     const userCheck = await checkUserLogIn(req?.headers?.authorization);
     if (userCheck == undefined) {
       res.status(500).json({ error: "General server error" });
@@ -56,24 +57,27 @@ const updateAccountDetails = async (req, res, next) => {
       res.status(401).json({ error: "No user Login found" });
       return;
     };
-    const checkPassword = passwordDecrypt(body?.old_password, userCheck[0]?.password);
-    if(checkPassword){
-      delete body.old_password;
-      body.password = passwordEncrypt(body?.new_password);
-      delete body.new_password;
-      const updateUser = await Model.updateMaster(
-        `tbl_user_web`,
-        userCheck[0]?.id,
-        body
-      );
-      if (updateUser) {
-        res.status(200).send(updateUser);
-      } else {
-        res.status(404).json({ error: "something went wrong" })
-      }
 
-    }else{
-      res.status(400).json({ error: `Incorrect old password` });
+    if (body?.old_password && body?.new_password) {
+      const checkPassword = passwordDecrypt(body?.old_password, userCheck[0]?.password);
+      if (checkPassword) {
+        delete body.old_password;
+        body.password = passwordEncrypt(body?.new_password);
+        delete body.new_password;
+      } else {
+        res.status(400).json({ error: `Incorrect old password` });
+      };
+    };
+
+    const updateUser = await Model.updateMaster(
+      `tbl_user_web`,
+      userCheck[0]?.id,
+      body
+    );
+    if (updateUser) {
+      res.status(200).send(updateUser);
+    } else {
+      res.status(404).json({ error: "something went wrong" })
     }
     endConnection();
   } catch (error) {

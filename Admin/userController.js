@@ -47,7 +47,6 @@ const checkUserLogIn = async (login_token) => {
 const updateAccountDetails = async (req, res, next) => {
   try {
     let body = req.body;
-    console.log(body);
     const userCheck = await checkUserLogIn(req?.headers?.authorization);
     if (userCheck == undefined) {
       res.status(500).json({ error: "General server error" });
@@ -57,7 +56,6 @@ const updateAccountDetails = async (req, res, next) => {
       res.status(401).json({ error: "No user Login found" });
       return;
     };
-
     if (body?.old_password && body?.new_password) {
       const checkPassword = passwordDecrypt(body?.old_password, userCheck[0]?.password);
       if (checkPassword) {
@@ -142,7 +140,61 @@ const userLogOut = async (req, res, next) => {
   } catch (error) {
     endConnection();
     console.log(chalk.red(error));
-    res.status(500).send("General Server Error");
+    res.status(500).json({error:"General Server Error"});
+  }
+};
+
+
+function isEmailValid(email) {
+  console.log(email);
+  const emailRegex = /^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
+  if (!email)
+    return false;
+
+  if (email.length > 254)
+    return false;
+
+  var valid = emailRegex.test(email);
+  if (!valid)
+    return false;
+
+  // Further checking of some things regex can't handle
+  var parts = email.split("@");
+  if (parts[0].length > 64)
+    return false;
+
+  var domainParts = parts[1].split(".");
+  if (domainParts.some(function (part) { return part.length > 63; }))
+    return false;
+
+  return true;
+};
+
+const addContactUs = async(req,res,next)=>{
+
+  try {
+
+    let body = req.body;
+
+    if(isEmailValid(body?.email_id)==false){
+      res.status(422).json({error:"Invalid Email Address"});
+      return;
+    }
+
+    const result = await Model.addMaster(
+      `tbl_contact_us`,
+      body
+    );
+    if(result){
+      res.status(200).send(result);
+    }else{
+      res.status(500).json({error:"General Server Error"})
+    }
+    endConnection();
+  } catch (error) {
+    endConnection();
+    console.log(chalk.red(error));
+    res.status(500).json({error:"General Server Error"});
   }
 };
 
@@ -247,5 +299,6 @@ module.exports = {
   loginUser,
   userLogOut,
   userAccountDetails,
-  updateAccountDetails
+  updateAccountDetails,
+  addContactUs
 }

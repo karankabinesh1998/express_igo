@@ -54,6 +54,10 @@ const corsOptionsDelegate = (req, res, next) => {
   .post(userController.userLogOut);
 
   router
+  .route("/contact")
+  .post(userController.addContactUs)
+
+  router
   .route("/my-account")
   .get(userController.userAccountDetails)
   .patch(userController.updateAccountDetails)

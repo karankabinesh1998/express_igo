@@ -14,7 +14,8 @@ const Envreader = {
   RAZORPAY_SECRET:process.env.RAZORPAY_SECRET,
   RAZORPAY_KEY_ID:process.env.RAZORPAY_KEY_ID,
   TESTRAZORPAY_SECRET:process.env.TESTRAZORPAY_SECRET,
-  TESTRAZORPAY_KEY_ID:process.env.TESTRAZORPAY_KEY_ID
+  TESTRAZORPAY_KEY_ID:process.env.TESTRAZORPAY_KEY_ID,
+  GOOGLE_MAP_API:process.env.GOOGLE_MAP_API
 };
 
 module.exports = Envreader;

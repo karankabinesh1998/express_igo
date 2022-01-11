@@ -22,6 +22,7 @@
     "express": "^4.17.1",
     "express-fileupload": "^1.2.1",
     "firebase-admin": "^9.11.0",
+    "google-distance": "^1.0.1",
     "helmet": "^4.6.0",
     "install-peerdeps": "^3.0.3",
     "moment": "^2.29.1",

@@ -1,7 +1,7 @@
 const Model = require('../Model');
 const { endConnection } = require('../dataBaseConnection');
 const chalk = require("chalk");
-const { FACTOR_API_KEY, RAZORPAY_SECRET, RAZORPAY_KEY_ID, TESTRAZORPAY_KEY_ID, TESTRAZORPAY_SECRET } = require('../Envreader');
+const { FACTOR_API_KEY, RAZORPAY_SECRET,GOOGLE_MAP_API ,RAZORPAY_KEY_ID, TESTRAZORPAY_KEY_ID, TESTRAZORPAY_SECRET } = require('../Envreader');
 const fs = require("fs");
 var admin = require("firebase-admin");
 var serviceAccount = require("./igotaxy-firebase-adminsdk-2c5sg-2a09a1a5ee.json");
@@ -10,7 +10,8 @@ const Razorpay = require("razorpay");
 let crypto = require("crypto");
 const moment = require('moment');
 const bcrypt = require('bcrypt');
-
+var distance = require('google-distance');
+distance.apiKey = GOOGLE_MAP_API;
 
 const randomString = () => {
   let chars = '0123456789abcdefghijklmnopqrstuvwxABCDEFGHIJKLMNOPQRSTUVWXYZ@!#$%&*';
@@ -18,6 +19,19 @@ const randomString = () => {
   var result = '';
   for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
   return result;
+};
+
+const distanceCalculator=async(origin,destination)=>{
+  distance.get(
+    {
+      origin: origin,
+      destination: destination
+    },
+    function(err, data) {
+      if (err) return console.log(err);
+      console.log(data);
+      return data;
+  });
 };
 
 const checkUserLogIn = async (login_token) => {
